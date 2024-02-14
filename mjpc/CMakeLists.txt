@@ -64,6 +64,8 @@ add_library(
   tasks/op3/stand.h
   tasks/panda/panda.cc
   tasks/panda/panda.h
+  tasks/plate_balancing/panda_plate_balancing.cc
+  tasks/plate_balancing/panda_plate_balancing.h
   tasks/particle/particle.cc
   tasks/particle/particle.h
   tasks/quadrotor/quadrotor.cc

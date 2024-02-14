@@ -28,6 +28,8 @@
 #include "mjpc/tasks/humanoid/stand/stand.h"
 #include "mjpc/tasks/humanoid/tracking/tracking.h"
 #include "mjpc/tasks/humanoid/walk/walk.h"
+#include "mjpc/tasks/panda/panda.h"
+#include "mjpc/tasks/plate_balancing/panda_plate_balancing.h"
 #include "mjpc/tasks/manipulation/manipulation.h"
 #include "mjpc/tasks/panda/panda.h"
 // DEEPMIND INTERNAL IMPORT
@@ -42,27 +44,27 @@ namespace mjpc {
 
 std::vector<std::shared_ptr<Task>> GetTasks() {
   return {
-      std::make_shared<Acrobot>(),
-      std::make_shared<Allegro>(),
-      std::make_shared<Bimanual>(),
-      std::make_shared<CubeSolve>(),
-      std::make_shared<Cartpole>(),
-      std::make_shared<Fingers>(),
-      std::make_shared<Hand>(),
-      std::make_shared<humanoid::Stand>(),
-      std::make_shared<humanoid::Tracking>(),
-      std::make_shared<humanoid::Walk>(),
-      std::make_shared<manipulation::Bring>(),
-      // DEEPMIND INTERNAL TASKS
-      std::make_shared<OP3>(),
-      std::make_shared<Panda>(),
-      std::make_shared<Particle>(),
-      std::make_shared<ParticleFixed>(),
-      std::make_shared<Quadrotor>(),
-      std::make_shared<QuadrupedFlat>(),
-      std::make_shared<QuadrupedHill>(),
-      std::make_shared<Swimmer>(),
-      std::make_shared<Walker>(),
+    std::make_shared<Acrobot>(),
+    std::make_shared<Bimanual>(),
+    std::make_shared<CubeSolve>(),
+    std::make_shared<Cartpole>(),
+    std::make_shared<Fingers>(),
+    std::make_shared<Hand>(),
+    std::make_shared<humanoid::Stand>(),
+    std::make_shared<humanoid::Tracking>(),
+    std::make_shared<humanoid::Walk>(),
+    std::make_shared<manipulation::Bring>(),
+    // DEEPMIND INTERNAL TASKS
+    std::make_shared<OP3>(),
+    std::make_shared<Panda>(),
+    std::make_shared<PlateBalancing>(),
+    std::make_shared<Particle>(),
+    std::make_shared<ParticleFixed>(),
+    std::make_shared<Quadrotor>(),
+    std::make_shared<QuadrupedFlat>(),
+    std::make_shared<QuadrupedHill>(),
+    std::make_shared<Swimmer>(),
+    std::make_shared<Walker>(),
   };
 }
 }  // namespace mjpc

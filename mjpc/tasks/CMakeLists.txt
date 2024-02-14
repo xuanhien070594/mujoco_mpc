@@ -90,6 +90,9 @@ add_custom_target(
           ${menagerie_SOURCE_DIR}/unitree_a1/a1.xml
           ${CMAKE_CURRENT_BINARY_DIR}/quadruped/a1.xml
   COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${menagerie_SOURCE_DIR}/franka_emika_panda/assets
+          ${CMAKE_CURRENT_BINARY_DIR}/plate_balancing/assets
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
           ${menagerie_SOURCE_DIR}/unitree_a1/assets
           ${CMAKE_CURRENT_BINARY_DIR}/quadruped/assets
   COMMAND patch -o ${CMAKE_CURRENT_BINARY_DIR}/quadruped/a1_modified.xml

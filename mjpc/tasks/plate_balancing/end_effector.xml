@@ -1,0 +1,23 @@
+<mujoco model="end_effector">
+  <compiler angle="radian" meshdir="assets" autolimits="true"/>
+
+  <option timestep="0.0005"/>
+
+  <worldbody>
+    <light name="top" pos="0 0 2" mode="trackcom"/>
+    <body name="base_link" gravcomp="1">
+      <inertial mass="0.37" pos="0 0 0" diaginertia="0.00048818 0.00048818 0.00097241"/>
+      <geom type="cylinder" size="0.0725 0.005" friction="0.6 .01 .003"/>
+        <joint name="end_effector_x" type="slide" range="0.4 0.6" axis="1 0 0" limited="true"/>
+          <joint name="end_effector_y" type="slide" range="-0.1 0.1" axis="0 1 0" limited="true"/>
+            <joint name="end_effector_z" type="slide" range="0.35 0.7" axis="0 0 1" limited="true"/>
+            <site name="eeff" pos="0 0 0.0" group="3"/>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <general site="eeff" refsite="world" gaintype="fixed" forcerange="-10 10" ctrlrange="-10 10" ctrllimited="true" gainprm="1" gear="1 0 0 0 0 0"/>
+    <general site="eeff" refsite="world" gaintype="fixed" forcerange="-10 10" ctrlrange="-10 10" ctrllimited="true" gainprm="1" gear="0 1 0 0 0 0"/>
+    <general site="eeff" refsite="world" gaintype="fixed" forcerange="-10 30" ctrlrange="-10 30" ctrllimited="true" gainprm="1" gear="0 0 1 0 0 0"/>
+  </actuator>
+</mujoco>
