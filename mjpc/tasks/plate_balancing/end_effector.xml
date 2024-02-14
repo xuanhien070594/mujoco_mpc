@@ -16,8 +16,8 @@
   </worldbody>
 
   <actuator>
-    <general site="eeff" refsite="world" gaintype="fixed" forcerange="-10 10" ctrlrange="-10 10" ctrllimited="true" gainprm="1" gear="1 0 0 0 0 0"/>
-    <general site="eeff" refsite="world" gaintype="fixed" forcerange="-10 10" ctrlrange="-10 10" ctrllimited="true" gainprm="1" gear="0 1 0 0 0 0"/>
-    <general site="eeff" refsite="world" gaintype="fixed" forcerange="-10 30" ctrlrange="-10 30" ctrllimited="true" gainprm="1" gear="0 0 1 0 0 0"/>
+    <general site="eeff" refsite="world" gaintype="fixed" forcerange="-10 10" ctrlrange="-10 10" forcelimited="true" ctrllimited="true" gainprm="1" gear="1 0 0 0 0 0"/>
+    <general site="eeff" refsite="world" gaintype="fixed" forcerange="-10 10" ctrlrange="-10 10" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 1 0 0 0 0"/>
+    <general site="eeff" refsite="world" gaintype="fixed" forcerange="-10 30" ctrlrange="-10 30" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 0 1 0 0 0"/>
   </actuator>
 </mujoco>
