@@ -75,8 +75,8 @@ void PlateBalancing::TransitionLocked(mjModel* model, mjData* data) {
 
   // reset:
   
-  if (data->time > 0 && bring_dist < .03) {
-    if ((data->mocap_pos[0] == 0.45 && data->mocap_pos[2] == 0.485) || data->time < 30.0) {
+  if (data->time > 0 && bring_dist < .05) {
+    if ((data->mocap_pos[0] == 0.45 && data->mocap_pos[2] == 0.485) || data->time < 10.0) {
       // target:
       data->mocap_pos[0] = 0.45;
       data->mocap_pos[1] = 0.0;

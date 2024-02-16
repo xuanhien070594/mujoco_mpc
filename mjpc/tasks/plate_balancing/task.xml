@@ -7,11 +7,11 @@
     <numeric name="agent_planner" data="0" />
     <numeric name="agent_horizon" data="0.375" />
     <numeric name="agent_timestep" data="0.0075" />
-    <numeric name="agent_policy_width" data="0.0035" />
-    <numeric name="sampling_trajectories" data="20"/>
+    <numeric name="agent_policy_width" data="0.001" />
+    <numeric name="sampling_trajectories" data="30"/>
     <numeric name="sampling_spline_points" data="5" />
     <numeric name="sampling_exploration" data="0.1" />
-    <numeric name="gradient_spline_points" data="5" />
+    <numeric name="gradient_spline_points" data="6" />
   </custom>
 
   <statistic extent="1.5" center="0.1 0.2 0.3"/>
@@ -45,7 +45,7 @@
     <body name="tray" pos="0.0 0.0 2.0">
       <inertial mass="1" pos="0 0 0" diaginertia="0.013105 0.013105 0.026129"/>
       <freejoint/>
-      <geom name="tray"  type="cylinder" size="0.2286 0.011" priority="1" condim="6" friction="0.4 .01 .003"/>
+      <geom name="tray"  type="cylinder" size="0.2286 0.011" priority="1" condim="3" friction="0.4 .01 .003"/>
     </body>
 
     <!-- <body name="center_support" pos="0.825 0.0 0.447" quat="1 0 0 0">
@@ -53,11 +53,11 @@
     </body> -->
 
     <body name="left_support" pos="0.8 0.15 0.447" quat="1 0 0 0">
-      <geom name="left_support"  type="box" size="0.2 0.01 0.024" priority="2" condim="6" friction="0.1 .01 .003"/>
+      <geom name="left_support"  type="box" size="0.2 0.01 0.024" priority="2" condim="3" friction="0.1 .01 .003"/>
     </body>
 
     <body name="right_support" pos="0.8 -0.15 0.447">
-      <geom name="right_support"  type="box" size="0.2 0.01 0.024" priority="2" condim="6" friction="0.1 .01 .003"/>
+      <geom name="right_support"  type="box" size="0.2 0.01 0.024" priority="2" condim="3" friction="0.1 .01 .003"/>
     </body>
   </worldbody>
 
