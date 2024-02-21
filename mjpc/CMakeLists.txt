@@ -179,6 +179,21 @@ target_link_libraries(
   threadpool
   Threads::Threads
 )
+add_executable(
+  run_policy
+  run_policy.cc
+)
+target_link_libraries(
+  run_policy
+  absl::flags
+  absl::flags_parse
+  absl::random_random
+  absl::strings
+  libmjpc
+  mujoco::mujoco
+  threadpool
+  Threads::Threads
+)
 target_include_directories(mjpc PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_compile_options(mjpc PUBLIC ${MJPC_COMPILE_OPTIONS})
 target_link_options(mjpc PRIVATE ${MJPC_LINK_OPTIONS})
