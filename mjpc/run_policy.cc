@@ -5,7 +5,11 @@
 #include <vector>
 
 #include <absl/flags/parse.h>
+#include <lcm/lcm-cpp.hpp>
 
+#include "dairlib/lcmt_object_state.hpp"
+#include "dairlib/lcmt_robot_output.hpp"
+#include "dairlib/lcmt_timestamped_saved_traj.hpp"
 #include "mjpc/agent.h"
 #include "mjpc/array_safety.h"
 #include "mjpc/tasks/tasks.h"
@@ -46,6 +50,9 @@ int main(int argc, char** argv) {
     }
   }
 
+  lcm::LCM lcm;
+  if (!lcm.good()) return 1;
+
   // Initialize the agent
   auto agent = std::make_shared<mjpc::Agent>(model, task);
 
@@ -72,13 +79,35 @@ int main(int argc, char** argv) {
   std::cout << "num parameters: " << agent->ActivePlanner().NumParameters()
             << std::endl;
 
+  dairlib::lcmt_robot_output robot_state;
+  dairlib::lcmt_object_state tray_state;
+  dairlib::lcmt_timestamped_saved_traj actor_traj;
+  dairlib::lcmt_saved_traj raw_traj;
+  dairlib::lcmt_trajectory_block actor_pos_traj;
+  dairlib::lcmt_trajectory_block actor_force_traj;
+  actor_force_traj.num_points = 5;
+  actor_force_traj.num_datatypes = 3;
+  actor_force_traj.datapoints =
+      std::vector<std::vector<double>>(3, std::vector<double>(5));
+  actor_force_traj.time_vec = std::vector<double>(5);
+  actor_force_traj.datatypes = std::vector<std::string>(3);
+  actor_force_traj.trajectory_name = "actor_force_traj";
+
+  // dairlib_lcmt_object_state tray_state;
+  // dairlib_lcmt_timestamped_saved_traj actor_traj;
+
   for (int i = 0; i < 5; ++i) {
+    // robot_state.position
+    // mju_copy3(qpos.data(), robot_state.position.data());
     mpc_state.Set(model, qpos.data(), qvel.data(), action.data(),
                   mocap_pos.data(), mocap_quat.data(), user_data.data(), time);
     agent->ActivePlanner().SetState(mpc_state);
     agent->ActivePlanner().OptimizePolicy(5, plan_pool);
     auto trajectory = agent->ActivePlanner().BestTrajectory();
     std::cout << "total return: " << trajectory->total_return << std::endl;
+    // actor_force_traj.time_vec = trajectory->times;
+    lcm.publish("MJPC_TRAJECTORY_ACTOR", &actor_force_traj);
+    // lcmt_robot_output_publish(lcm, "CASSIE_STATE_SIMULATION", &actor_traj);
   }
 
   // Seems like trajectory actions and states never update the size, always max

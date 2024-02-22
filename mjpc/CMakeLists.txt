@@ -24,6 +24,41 @@ target_link_libraries(
 )
 target_include_directories(threadpool PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
+find_package(lcm REQUIRED)
+include(${LCM_USE_FILE})
+
+lcm_wrap_types(
+  C_EXPORT my_lcmtypes
+  C_SOURCES c_sources
+  C_HEADERS c_headers
+  CPP_HEADERS cpp_headers
+  lcmtypes/lcmt_metadata.lcm
+  lcmtypes/lcmt_object_state.lcm
+  lcmtypes/lcmt_robot_output.lcm
+  lcmtypes/lcmt_saved_traj.lcm
+  lcmtypes/lcmt_timestamped_saved_traj.lcm
+  lcmtypes/lcmt_trajectory_block.lcm
+)
+
+lcm_add_library(my_lcmtypes-cpp CPP ${cpp_headers})
+
+
+# execute_process(COMMAND lcm-gen -c lcmtypes WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+# set(LCM_DIR "/opt/lcm/1.4.0/lib/lcm/cmake")
+# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/opt/lcm/1.4.0/lib/lcm/cmake")
+
+# find_package(LCM REQUIRED)
+# include_directories(${LCM_INCLUDE_DIRS})
+
+# include_directories(lcmtypes)
+
+# add_library(
+#   dairlib_lcmtypes STATIC
+#   lcmtypes/lcmt_robot_output.hpp
+#   lcmtypes/lcmt_object_state.hpp
+# )
+
 add_library(
   libmjpc STATIC
   states/state.cc
@@ -164,6 +199,9 @@ target_include_directories(libmjpc
   ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 
+target_include_directories(my_lcmtypes-cpp INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+
 add_executable(
   mjpc
   main.cc
@@ -190,11 +228,14 @@ target_link_libraries(
   absl::random_random
   absl::strings
   libmjpc
+  my_lcmtypes-cpp
   mujoco::mujoco
   threadpool
   Threads::Threads
+  lcm
 )
 target_include_directories(mjpc PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_include_directories(run_policy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_compile_options(mjpc PUBLIC ${MJPC_COMPILE_OPTIONS})
 target_link_options(mjpc PRIVATE ${MJPC_LINK_OPTIONS})
 target_compile_definitions(mjpc PRIVATE MJSIMULATE_STATIC)
