@@ -43,23 +43,6 @@ lcm_wrap_types(
 
 lcm_add_library(my_lcmtypes-cpp CPP ${cpp_headers})
 
-
-# execute_process(COMMAND lcm-gen -c lcmtypes WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
-# set(LCM_DIR "/opt/lcm/1.4.0/lib/lcm/cmake")
-# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/opt/lcm/1.4.0/lib/lcm/cmake")
-
-# find_package(LCM REQUIRED)
-# include_directories(${LCM_INCLUDE_DIRS})
-
-# include_directories(lcmtypes)
-
-# add_library(
-#   dairlib_lcmtypes STATIC
-#   lcmtypes/lcmt_robot_output.hpp
-#   lcmtypes/lcmt_object_state.hpp
-# )
-
 add_library(
   libmjpc STATIC
   states/state.cc
@@ -221,11 +204,11 @@ target_link_libraries(
   Threads::Threads
 )
 add_executable(
-  run_policy
-  run_policy.cc
+  standalone_controller
+  standalone_controller.cc
 )
 target_link_libraries(
-  run_policy
+  standalone_controller
   absl::flags
   absl::flags_parse
   absl::random_random
@@ -238,7 +221,7 @@ target_link_libraries(
   lcm
 )
 target_include_directories(mjpc PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
-target_include_directories(run_policy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_include_directories(standalone_controller PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_compile_options(mjpc PUBLIC ${MJPC_COMPILE_OPTIONS})
 target_link_options(mjpc PRIVATE ${MJPC_LINK_OPTIONS})
 target_compile_definitions(mjpc PRIVATE MJSIMULATE_STATIC)
