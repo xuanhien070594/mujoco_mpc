@@ -48,10 +48,6 @@
       <geom name="tray"  type="cylinder" size="0.2286 0.011" priority="1" condim="3" friction="0.4 .01 .003"/>
     </body>
 
-    <!-- <body name="center_support" pos="0.825 0.0 0.447" quat="1 0 0 0">
-      <geom name="center_support"  type="box" size="0.175 0.14 0.024" priority="1" condim="6" friction="0.1 .01 .003"/>
-    </body> -->
-
     <body name="left_support" pos="0.8 0.15 0.447" quat="1 0 0 0">
       <geom name="left_support"  type="box" size="0.2 0.01 0.024" priority="2" condim="3" friction="0.1 .01 .003"/>
     </body>
@@ -79,6 +75,5 @@
     <framepos name="trace1" objtype="geom" objname="tray"/>
   </sensor>
 
-  <!-- <include file="panda_joint_space.xml"/> -->
   <include file="end_effector.xml"/>
 </mujoco>

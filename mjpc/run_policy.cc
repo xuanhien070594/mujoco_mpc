@@ -7,6 +7,7 @@
 #include <absl/flags/parse.h>
 #include <lcm/lcm-cpp.hpp>
 
+#include "dairlib/lcmt_c3_state.hpp"
 #include "dairlib/lcmt_object_state.hpp"
 #include "dairlib/lcmt_robot_output.hpp"
 #include "dairlib/lcmt_timestamped_saved_traj.hpp"
@@ -32,22 +33,20 @@ void sensor(const mjModel* model, mjData* data, int stage) {
 class Handler {
  public:
   Handler() {
-    franka_positions_ = std::vector<double>(7);
-    franka_velocities_ = std::vector<double>(7);
+    franka_positions_ = std::vector<double>(3);
+    franka_velocities_ = std::vector<double>(3);
     tray_positions_ = std::vector<double>(7);
     tray_velocities_ = std::vector<double>(6);
   }
   ~Handler() {}
-  void handle_franka(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
-                     const dairlib::lcmt_robot_output* msg) {
-    franka_positions_ = msg->position;
-    franka_velocities_ = msg->velocity;
+  void handle_mpc_state(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
+                        const dairlib::lcmt_c3_state* msg) {
     time_ = 1e-6 * msg->utime;
-  }
-  void handle_tray(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
-                   const dairlib::lcmt_object_state* msg) {
-    tray_positions_ = msg->position;
-    tray_velocities_ = msg->velocity;
+    franka_positions_ = {msg->state.begin(), msg->state.begin() + 3};
+    franka_velocities_ = {msg->state.begin() + 10, msg->state.begin() + 10 + 3};
+    tray_positions_ = {msg->state.begin() + 3, msg->state.begin() + 3 + 7};
+    tray_velocities_ = {msg->state.begin() + 10 + 3,
+                        msg->state.begin() + 10 + 3 + 6};
   }
   double time_;
   std::vector<double> franka_positions_;
@@ -153,20 +152,16 @@ int main(int argc, char** argv) {
   object_quat_traj.trajectory_name = "object_orientation_target";
 
   raw_actor_traj.trajectory_names = {actor_force_traj.trajectory_name,
-                                     actor_force_traj.trajectory_name};
+                                     actor_pos_traj.trajectory_name};
   raw_actor_traj.num_trajectories = 2;
   raw_object_traj.trajectory_names = {object_pos_traj.trajectory_name,
                                       object_quat_traj.trajectory_name};
   raw_object_traj.num_trajectories = 2;
 
-  // dairlib_lcmt_object_state tray_state;
-  // dairlib_lcmt_timestamped_saved_traj actor_traj;
   agent->GetModel()->opt.timestep =
       mjpc::GetNumberOrDefault(1.0e-2, model, "agent_timestep");
   Handler handlerObject;
-  lcm.subscribe("FRANKA_STATE_SIMULATION", &Handler::handle_franka,
-                &handlerObject);
-  lcm.subscribe("TRAY_STATE_SIMULATION", &Handler::handle_tray, &handlerObject);
+  lcm.subscribe("C3_ACTUAL", &Handler::handle_mpc_state, &handlerObject);
   int actor_pos_start = 7;
   int object_pos_start = 4;
   int object_quat_start = 0;
@@ -178,13 +173,15 @@ int main(int argc, char** argv) {
     time = handlerObject.time_;
     // the order of the positions are different between C3 and mjmpc
     mju_copy(qpos.data(), handlerObject.tray_positions_.data(), 7);
+    mju_copy(qpos.data() + 7, handlerObject.franka_positions_.data(), 3);
+    mju_copy(qpos.data() + 10, handlerObject.tray_velocities_.data(), 6);
+    mju_copy(qpos.data() + 10 + 6, handlerObject.franka_velocities_.data(), 3);
 
     mpc_state.Set(model, qpos.data(), qvel.data(), action.data(),
                   mocap_pos.data(), mocap_quat.data(), user_data.data(), time);
     agent->ActivePlanner().SetState(mpc_state);
     agent->ActivePlanner().OptimizePolicy(5, plan_pool);
     auto trajectory = agent->ActivePlanner().BestTrajectory();
-    std::cout << "total return: " << trajectory->total_return << std::endl;
     actor_force_traj.time_vec = trajectory->times;
     for (int k = 0; k < trajectory->horizon; ++k) {
       for (int m = 0; m < trajectory->dim_action; ++m) {
@@ -216,6 +213,8 @@ int main(int argc, char** argv) {
                 ->states[(n + object_quat_start) + k * trajectory->dim_state];
       }
     }
+    std::cout << "sim time: " << time << std::endl;
+    std::cout << "total return: " << trajectory->total_return << std::endl;
 
     raw_actor_traj.trajectories.at(0) = actor_force_traj;
     raw_actor_traj.trajectories.at(1) = actor_pos_traj;
@@ -225,23 +224,9 @@ int main(int argc, char** argv) {
     actor_traj.utime = time * 1e6;
     object_traj.saved_traj = raw_object_traj;
     object_traj.utime = time * 1e6;
-    lcm.publish("MJPC_TRAJECTORY_ACTOR", &actor_traj);
-    lcm.publish("MJPC_TRAJECTORY_TRAY", &object_traj);
-    // lcmt_robot_output_publish(lcm, "CASSIE_STATE_SIMULATION", &actor_traj);
+    lcm.publish("C3_TRAJECTORY_ACTOR", &actor_traj);
+    lcm.publish("C3_TRAJECTORY_TRAY", &object_traj);
   }
-
-  // Seems like trajectory actions and states never update the size, always max
-  // length, so manually copy over the correct size only dim_action * horizon is
-  // non-zero Note this is diff than the documentation that says dim_action *
-  // (horizon - 1) for (int i = 0; i < trajectory->dim_action *
-  // (trajectory->horizon); ++i){
-  //   std::cout << trajectory->actions[i] << " ";
-  // }
-  // std::cout << std::endl;
-  // for (int i = 0; i < trajectory->dim_state * (trajectory->horizon); ++i){
-  //   std::cout << trajectory->states[i] << " ";
-  // }
-  // std::cout << std::endl;
 
   return 0;
 }

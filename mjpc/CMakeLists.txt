@@ -36,6 +36,7 @@ lcm_wrap_types(
   lcmtypes/lcmt_object_state.lcm
   lcmtypes/lcmt_robot_output.lcm
   lcmtypes/lcmt_saved_traj.lcm
+  lcmtypes/lcmt_c3_state.lcm
   lcmtypes/lcmt_timestamped_saved_traj.lcm
   lcmtypes/lcmt_trajectory_block.lcm
 )
