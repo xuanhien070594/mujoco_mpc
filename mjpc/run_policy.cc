@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
   // Set up the variables
   mjModel* model = new mjModel();
   std::vector<std::shared_ptr<mjpc::Task>> tasks = mjpc::GetTasks();
-  std::shared_ptr<mjpc::Task> task = tasks[12];
+  std::shared_ptr<mjpc::Task> task = tasks[14];
   std::unique_ptr<mjpc::ResidualFn> residual_fn;
 
   // Load the model

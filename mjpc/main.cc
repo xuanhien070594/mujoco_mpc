@@ -17,21 +17,21 @@
 #include <iostream>
 #include <ostream>
 #include <vector>
+
 #include <absl/flags/parse.h>
 
 #include "mjpc/app.h"
 #include "mjpc/task.h"
-#include "mjpc/utilities.h"
 #include "mjpc/tasks/tasks.h"
-
+#include "mjpc/utilities.h"
 
 // machinery for replacing command line error by a macOS dialog box
 // when running under Rosetta
 #if defined(__APPLE__) && defined(__AVX__)
 extern void DisplayErrorDialogBox(const char* title, const char* msg);
 static const char* rosetta_error_msg = nullptr;
-__attribute__((used, visibility("default")))
-extern "C" void _mj_rosettaError(const char* msg) {
+__attribute__((used, visibility("default"))) extern "C" void _mj_rosettaError(
+    const char* msg) {
   rosetta_error_msg = msg;
 }
 #endif
@@ -47,6 +47,6 @@ int main(int argc, char** argv) {
 #endif
   absl::ParseCommandLine(argc, argv);
 
-  mjpc::StartApp(mjpc::GetTasks(), 12);  // start with quadruped flat
+  mjpc::StartApp(mjpc::GetTasks());  // start with quadruped flat
   return 0;
 }
