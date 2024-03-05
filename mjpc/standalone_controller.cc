@@ -66,6 +66,7 @@ int main(int argc, char** argv) {
 
   // Load the model
   std::string filename = task->XmlPath();
+  std::cout << task->XmlPath() << std::endl;
   constexpr int kErrorLength = 1024;
   char load_error[kErrorLength] = "";
   model = mj_loadXML(filename.c_str(), nullptr, load_error, kErrorLength);
@@ -101,10 +102,6 @@ int main(int argc, char** argv) {
   mpc_state.Initialize(model);
   mpc_state.Allocate(model);
 
-  std::cout << "planning threads: " << agent->planner_threads() << std::endl;
-  std::cout << "num parameters: " << agent->ActivePlanner().NumParameters()
-            << std::endl;
-
   dairlib::lcmt_robot_output robot_state;
   dairlib::lcmt_object_state tray_state;
   dairlib::lcmt_timestamped_saved_traj actor_traj;
@@ -122,7 +119,7 @@ int main(int argc, char** argv) {
   actor_force_traj.num_points = horizon;
   actor_force_traj.num_datatypes = 3;
   actor_force_traj.datapoints =
-      std::vector<std::vector<double>>(3, std::vector<double>(horizon));
+      std::vector<std::vector<double>>(3, std::vector<double>(horizon, 0.0));
   actor_force_traj.time_vec = std::vector<double>(horizon);
   actor_force_traj.datatypes = std::vector<std::string>(3);
   actor_force_traj.trajectory_name = "end_effector_force_target";
@@ -158,6 +155,10 @@ int main(int argc, char** argv) {
                                       object_quat_traj.trajectory_name};
   raw_object_traj.num_trajectories = 2;
 
+  auto planner_id = mjpc::GetNumberOrDefault(0, model, "agent_planner");
+
+  std::cout << "planner id: " << planner_id << std::endl;
+
   agent->GetModel()->opt.timestep =
       mjpc::GetNumberOrDefault(1.0e-2, model, "agent_timestep");
   Handler handlerObject;
@@ -165,6 +166,10 @@ int main(int argc, char** argv) {
   int actor_pos_start = 7;
   int object_pos_start = 4;
   int object_quat_start = 0;
+
+  std::cout << "planning threads: " << agent->planner_threads() << std::endl;
+  std::cout << "num parameters: " << agent->ActivePlanner().NumParameters()
+            << std::endl;
 
   while (true) {
     if (lcm.getFileno() != 0) {
@@ -174,8 +179,12 @@ int main(int argc, char** argv) {
     // the order of the positions are different between C3 and mjmpc
     mju_copy(qpos.data(), handlerObject.tray_positions_.data(), 7);
     mju_copy(qpos.data() + 7, handlerObject.franka_positions_.data(), 3);
-    mju_copy(qpos.data() + 10, handlerObject.tray_velocities_.data(), 6);
-    mju_copy(qpos.data() + 10 + 6, handlerObject.franka_velocities_.data(), 3);
+    mju_copy(qvel.data(), handlerObject.tray_velocities_.data(), 6);
+    mju_copy(qvel.data() + 6, handlerObject.franka_velocities_.data(), 3);
+
+    action[0] = actor_force_traj.datapoints[0][0];
+    action[1] = actor_force_traj.datapoints[1][0];
+    action[2] = actor_force_traj.datapoints[2][0];
 
     mpc_state.Set(model, qpos.data(), qvel.data(), action.data(),
                   mocap_pos.data(), mocap_quat.data(), user_data.data(), time);
@@ -183,11 +192,15 @@ int main(int argc, char** argv) {
     agent->ActivePlanner().OptimizePolicy(5, plan_pool);
     auto trajectory = agent->ActivePlanner().BestTrajectory();
     actor_force_traj.time_vec = trajectory->times;
+
+    // Scaling the action
     for (int k = 0; k < trajectory->horizon; ++k) {
-      for (int m = 0; m < trajectory->dim_action; ++m) {
-        actor_force_traj.datapoints[m][k] =
-            trajectory->actions[m + k * trajectory->dim_action];
-      }
+      actor_force_traj.datapoints[0][k] =
+          10 * trajectory->actions[0 + k * trajectory->dim_action];
+      actor_force_traj.datapoints[1][k] =
+          10 * trajectory->actions[1 + k * trajectory->dim_action];
+      actor_force_traj.datapoints[2][k] =
+          30 * trajectory->actions[2 + k * trajectory->dim_action];
     }
     actor_pos_traj.time_vec = trajectory->times;
     for (int k = 0; k < trajectory->horizon; ++k) {
