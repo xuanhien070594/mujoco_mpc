@@ -45,6 +45,14 @@ class Handler {
     franka_positions_ = {msg->state.begin(), msg->state.begin() + 3};
     franka_velocities_ = {msg->state.begin() + 10, msg->state.begin() + 10 + 3};
     tray_positions_ = {msg->state.begin() + 3, msg->state.begin() + 3 + 7};
+    // mujoco state goes pos then orientation, msg does orientation then pos
+    tray_positions_[0] = msg->state[7];
+    tray_positions_[1] = msg->state[8];
+    tray_positions_[2] = msg->state[9];
+    tray_positions_[3] = msg->state[3];
+    tray_positions_[4] = msg->state[4];
+    tray_positions_[5] = msg->state[5];
+    tray_positions_[6] = msg->state[6];
     tray_velocities_ = {msg->state.begin() + 10 + 3,
                         msg->state.begin() + 10 + 3 + 6};
   }
@@ -164,8 +172,8 @@ int main(int argc, char** argv) {
   Handler handlerObject;
   lcm.subscribe("C3_ACTUAL", &Handler::handle_mpc_state, &handlerObject);
   int actor_pos_start = 7;
-  int object_pos_start = 4;
-  int object_quat_start = 0;
+  int object_pos_start = 0;
+  int object_quat_start = 3;
 
   std::cout << "planning threads: " << agent->planner_threads() << std::endl;
   std::cout << "num parameters: " << agent->ActivePlanner().NumParameters()
@@ -226,8 +234,6 @@ int main(int argc, char** argv) {
                 ->states[(n + object_quat_start) + k * trajectory->dim_state];
       }
     }
-    std::cout << "sim time: " << time << std::endl;
-    std::cout << "total return: " << trajectory->total_return << std::endl;
 
     raw_actor_traj.trajectories.at(0) = actor_force_traj;
     raw_actor_traj.trajectories.at(1) = actor_pos_traj;
