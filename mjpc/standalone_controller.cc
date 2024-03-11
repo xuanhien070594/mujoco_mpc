@@ -120,8 +120,9 @@ int main(int argc, char** argv) {
   dairlib::lcmt_trajectory_block actor_force_traj;
   dairlib::lcmt_trajectory_block object_pos_traj;
   dairlib::lcmt_trajectory_block object_quat_traj;
-  int horizon =
-      mjpc::GetNumberOrDefault(1.0e-2, model, "sampling_spline_points");
+  int horizon = mjpc::GetNumberOrDefault(1.0e-2, model, "agent_horizon") /
+                mjpc::GetNumberOrDefault(1.0e-2, model, "agent_timestep");
+  horizon += 1;
   raw_actor_traj.trajectories = std::vector<dairlib::lcmt_trajectory_block>(2);
   raw_object_traj.trajectories = std::vector<dairlib::lcmt_trajectory_block>(2);
   actor_force_traj.num_points = horizon;
@@ -166,6 +167,8 @@ int main(int argc, char** argv) {
   auto planner_id = mjpc::GetNumberOrDefault(0, model, "agent_planner");
 
   std::cout << "planner id: " << planner_id << std::endl;
+  std::cout << "horizon: " << agent->ActivePlanner().BestTrajectory()->horizon
+            << std::endl;
 
   agent->GetModel()->opt.timestep =
       mjpc::GetNumberOrDefault(1.0e-2, model, "agent_timestep");
@@ -197,7 +200,7 @@ int main(int argc, char** argv) {
     mpc_state.Set(model, qpos.data(), qvel.data(), action.data(),
                   mocap_pos.data(), mocap_quat.data(), user_data.data(), time);
     agent->ActivePlanner().SetState(mpc_state);
-    agent->ActivePlanner().OptimizePolicy(5, plan_pool);
+    agent->ActivePlanner().OptimizePolicy(horizon, plan_pool);
     auto trajectory = agent->ActivePlanner().BestTrajectory();
     actor_force_traj.time_vec = trajectory->times;
 

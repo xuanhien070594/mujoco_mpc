@@ -5,7 +5,7 @@
 
   <custom>
     <numeric name="agent_planner" data="0" />
-    <numeric name="agent_horizon" data="0.375" />
+    <numeric name="agent_horizon" data="0.3" />
     <numeric name="agent_timestep" data="0.0075" />
     <numeric name="agent_policy_width" data="0.001" />
     <numeric name="sampling_trajectories" data="30"/>
