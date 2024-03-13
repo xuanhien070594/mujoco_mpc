@@ -58,7 +58,7 @@
   </worldbody>
 
   <keyframe>
-    <key name="home" qpos="0.7 0.00 0.485 1 0 0 0 0.55 0.0 0.45"/>
+    <key name="home" qpos="0.7 0.00 0.482 1 0 0 0 0.55 0.0 0.45"/>
   </keyframe>
 
   <sensor>

@@ -65,6 +65,8 @@ class Handler {
 
 int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
+  lcm::LCM lcm;
+  if (!lcm.good()) return 1;
 
   // Set up the variables
   mjModel* model = new mjModel();
@@ -74,7 +76,6 @@ int main(int argc, char** argv) {
 
   // Load the model
   std::string filename = task->XmlPath();
-  std::cout << task->XmlPath() << std::endl;
   constexpr int kErrorLength = 1024;
   char load_error[kErrorLength] = "";
   model = mj_loadXML(filename.c_str(), nullptr, load_error, kErrorLength);
@@ -85,9 +86,6 @@ int main(int argc, char** argv) {
     }
   }
 
-  lcm::LCM lcm;
-  if (!lcm.good()) return 1;
-
   // Initialize the agent
   auto agent = std::make_shared<mjpc::Agent>(model, task);
 
@@ -96,20 +94,25 @@ int main(int argc, char** argv) {
   // order matters, need to set the global variable as the sensor callback
   mjcb_sensor = sensor;
 
+  int actor_pos_start = 7;
+  int object_pos_start = 0;
+  int object_quat_start = 3;
   std::vector<double> action = {-0.1, 0.1, 0};
   std::vector<double> qpos = {0.7, 0.00, 0.485, 1, 0, 0, 0, 0.55, 0.0, 0.45};
   std::vector<double> qvel = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-  std::vector<double> mocap_pos = {0.45, 0, 0.6, 0.45, 0, 0.584};
+  std::vector<double> mocap_pos = {0.45, 0, 0.485, 0.45, 0, 0.469};
   std::vector<double> mocap_quat = {1, 0, 0, 0, 1, 0, 0, 0};
   std::vector<double> user_data = {0};  // size is actually 0
-
-  std::cout << agent->ActiveTask()->Name() << std::endl;
-  mjpc::ThreadPool plan_pool(agent->planner_threads());
   double time = 0;
   mjpc::State mpc_state = mjpc::State();
+
+  mjpc::ThreadPool plan_pool(agent->planner_threads());
   mpc_state.Initialize(model);
   mpc_state.Allocate(model);
 
+  /**
+   * lcmtypes
+   */
   dairlib::lcmt_robot_output robot_state;
   dairlib::lcmt_object_state tray_state;
   dairlib::lcmt_timestamped_saved_traj actor_traj;
@@ -163,29 +166,34 @@ int main(int argc, char** argv) {
   raw_object_traj.trajectory_names = {object_pos_traj.trajectory_name,
                                       object_quat_traj.trajectory_name};
   raw_object_traj.num_trajectories = 2;
-
-  auto planner_id = mjpc::GetNumberOrDefault(0, model, "agent_planner");
-
-  std::cout << "planner id: " << planner_id << std::endl;
-  std::cout << "horizon: " << agent->ActivePlanner().BestTrajectory()->horizon
-            << std::endl;
-
-  agent->GetModel()->opt.timestep =
-      mjpc::GetNumberOrDefault(1.0e-2, model, "agent_timestep");
   Handler handlerObject;
   lcm.subscribe("C3_ACTUAL", &Handler::handle_mpc_state, &handlerObject);
-  int actor_pos_start = 7;
-  int object_pos_start = 0;
-  int object_quat_start = 3;
+  /**
+   * End lcmtypes
+   */
 
+  auto planner_id = mjpc::GetNumberOrDefault(0, model, "agent_planner");
+  agent->GetModel()->opt.timestep =
+      mjpc::GetNumberOrDefault(1.0e-2, model, "agent_timestep");
+
+  std::cout << "planner id: " << planner_id << std::endl;
+  std::cout << "horizon: " << horizon << std::endl;
+  std::cout << "na: " << model->na << std::endl;
+  std::cout << "model integrator: " << model->opt.integrator << std::endl;
   std::cout << "planning threads: " << agent->planner_threads() << std::endl;
   std::cout << "num parameters: " << agent->ActivePlanner().NumParameters()
             << std::endl;
 
+  // model->opt.integrator = agent->inte
+  std::vector<double> distance_to_goal = std::vector<double>(3);
+  double time_to_first_goal = 0.0;
+  int fsm_state = 0;
+  // control loop
   while (true) {
     if (lcm.getFileno() != 0) {
       lcm.handle();
     }
+
     time = handlerObject.time_;
     // the order of the positions are different between C3 and mjmpc
     mju_copy(qpos.data(), handlerObject.tray_positions_.data(), 7);
@@ -193,18 +201,54 @@ int main(int argc, char** argv) {
     mju_copy(qvel.data(), handlerObject.tray_velocities_.data(), 6);
     mju_copy(qvel.data() + 6, handlerObject.franka_velocities_.data(), 3);
 
+    mju_sub3(distance_to_goal.data(), handlerObject.tray_positions_.data(),
+             mocap_pos.data());
+    if (fsm_state == 0 && mju_norm3(distance_to_goal.data()) < .02) {
+      mocap_pos[0] = 0.45;
+      mocap_pos[1] = 0.0;
+      mocap_pos[2] = 0.6;
+      mocap_pos[3] = 0.45;
+      mocap_pos[4] = 0.0;
+      mocap_pos[5] = 0.584;
+      fsm_state = 1;
+      if (time_to_first_goal == 0.0) {
+        time_to_first_goal = time;
+      }
+    }
+    if (fsm_state == 1 && (time - time_to_first_goal) > 3.0 &&
+        mju_norm3(distance_to_goal.data()) < .05) {
+      mocap_pos[0] = 0.7;
+      mocap_pos[1] = 0.0;
+      mocap_pos[2] = 0.485;
+      mocap_pos[3] = 0.6;
+      mocap_pos[4] = 0.0;
+      mocap_pos[5] = 0.469;
+      fsm_state = 2;
+    }
+
     action[0] = actor_force_traj.datapoints[0][0];
     action[1] = actor_force_traj.datapoints[1][0];
     action[2] = actor_force_traj.datapoints[2][0];
 
     mpc_state.Set(model, qpos.data(), qvel.data(), action.data(),
                   mocap_pos.data(), mocap_quat.data(), user_data.data(), time);
+
+    // check mpc state
+    // auto state = mpc_state.state();
+    // for (auto val : state) {
+    //   std::cout << val << ", ";
+    // }
+    // std::cout << std::endl;
+
+    // agent plan
     agent->ActivePlanner().SetState(mpc_state);
     agent->ActivePlanner().OptimizePolicy(horizon, plan_pool);
+
+    // copy trajectory to send via lcm
     auto trajectory = agent->ActivePlanner().BestTrajectory();
-    actor_force_traj.time_vec = trajectory->times;
 
     // Scaling the action
+    actor_force_traj.time_vec = trajectory->times;
     for (int k = 0; k < trajectory->horizon; ++k) {
       actor_force_traj.datapoints[0][k] =
           10 * trajectory->actions[0 + k * trajectory->dim_action];
