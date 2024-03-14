@@ -37,6 +37,8 @@ class Handler {
     franka_velocities_ = std::vector<double>(3);
     tray_positions_ = std::vector<double>(7);
     tray_velocities_ = std::vector<double>(6);
+    franka_target_ = std::vector<double>(3);
+    tray_target_ = std::vector<double>(3);
   }
   ~Handler() {}
   void handle_mpc_state(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
@@ -56,11 +58,19 @@ class Handler {
     tray_velocities_ = {msg->state.begin() + 10 + 3,
                         msg->state.begin() + 10 + 3 + 6};
   }
+  void handle_mpc_target(const lcm::ReceiveBuffer* rbuf,
+                         const std::string& chan,
+                         const dairlib::lcmt_c3_state* msg) {
+    franka_target_ = {msg->state.begin(), msg->state.begin() + 3};
+    tray_target_ = {msg->state.begin() + 7, msg->state.begin() + 10};
+  }
   double time_;
   std::vector<double> franka_positions_;
   std::vector<double> franka_velocities_;
   std::vector<double> tray_positions_;
   std::vector<double> tray_velocities_;
+  std::vector<double> franka_target_;
+  std::vector<double> tray_target_;
 };
 
 int main(int argc, char** argv) {
@@ -168,6 +178,7 @@ int main(int argc, char** argv) {
   raw_object_traj.num_trajectories = 2;
   Handler handlerObject;
   lcm.subscribe("C3_ACTUAL", &Handler::handle_mpc_state, &handlerObject);
+  lcm.subscribe("C3_TARGET", &Handler::handle_mpc_target, &handlerObject);
   /**
    * End lcmtypes
    */
@@ -186,11 +197,11 @@ int main(int argc, char** argv) {
 
   // model->opt.integrator = agent->inte
   std::vector<double> distance_to_goal = std::vector<double>(3);
-  double time_to_first_goal = 0.0;
-  int fsm_state = 0;
   // control loop
   while (true) {
     if (lcm.getFileno() != 0) {
+      // shouldn't need two handles, but doesn't work otherwise
+      lcm.handle();
       lcm.handle();
     }
 
@@ -201,30 +212,9 @@ int main(int argc, char** argv) {
     mju_copy(qvel.data(), handlerObject.tray_velocities_.data(), 6);
     mju_copy(qvel.data() + 6, handlerObject.franka_velocities_.data(), 3);
 
-    mju_sub3(distance_to_goal.data(), handlerObject.tray_positions_.data(),
-             mocap_pos.data());
-    if (fsm_state == 0 && mju_norm3(distance_to_goal.data()) < .02) {
-      mocap_pos[0] = 0.45;
-      mocap_pos[1] = 0.0;
-      mocap_pos[2] = 0.6;
-      mocap_pos[3] = 0.45;
-      mocap_pos[4] = 0.0;
-      mocap_pos[5] = 0.584;
-      fsm_state = 1;
-      if (time_to_first_goal == 0.0) {
-        time_to_first_goal = time;
-      }
-    }
-    if (fsm_state == 1 && (time - time_to_first_goal) > 3.0 &&
-        mju_norm3(distance_to_goal.data()) < .05) {
-      mocap_pos[0] = 0.7;
-      mocap_pos[1] = 0.0;
-      mocap_pos[2] = 0.485;
-      mocap_pos[3] = 0.6;
-      mocap_pos[4] = 0.0;
-      mocap_pos[5] = 0.469;
-      fsm_state = 2;
-    }
+    // copy over the new target state
+    mju_copy(mocap_pos.data(), handlerObject.tray_target_.data(), 3);
+    mju_copy(mocap_pos.data() + 3, handlerObject.franka_target_.data(), 3);
 
     action[0] = actor_force_traj.datapoints[0][0];
     action[1] = actor_force_traj.datapoints[1][0];
@@ -232,13 +222,6 @@ int main(int argc, char** argv) {
 
     mpc_state.Set(model, qpos.data(), qvel.data(), action.data(),
                   mocap_pos.data(), mocap_quat.data(), user_data.data(), time);
-
-    // check mpc state
-    // auto state = mpc_state.state();
-    // for (auto val : state) {
-    //   std::cout << val << ", ";
-    // }
-    // std::cout << std::endl;
 
     // agent plan
     agent->ActivePlanner().SetState(mpc_state);

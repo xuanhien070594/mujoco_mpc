@@ -3,6 +3,15 @@
 
   <size memory="1M"/>
 
+  <!-- const char kPlannerNames[] =
+    "Sampling\n"
+    "Gradient\n"
+    "iLQG\n"
+    "iLQS\n"
+    "Robust Sampling\n"
+    "Cross Entropy\n"
+    "Sample Gradient"; -->
+
   <custom>
     <numeric name="agent_planner" data="0" />
     <numeric name="agent_horizon" data="0.3" />
