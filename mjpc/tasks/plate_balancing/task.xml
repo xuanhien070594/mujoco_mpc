@@ -1,0 +1,88 @@
+<mujoco model="Panda">
+  <include file="../common.xml"/>
+
+  <size memory="1M"/>
+
+  <!-- const char kPlannerNames[] =
+    "Sampling\n"
+    "Gradient\n"
+    "iLQG\n"
+    "iLQS\n"
+    "Robust Sampling\n"
+    "Cross Entropy\n"
+    "Sample Gradient"; -->
+
+  <custom>
+    <numeric name="agent_planner" data="0" />
+    <numeric name="agent_horizon" data="0.3" />
+    <numeric name="agent_timestep" data="0.0075" />
+    <numeric name="agent_policy_width" data="0.001" />
+    <numeric name="sampling_trajectories" data="30"/>
+    <numeric name="sampling_spline_points" data="5" />
+    <numeric name="sampling_exploration" data="0.1" />
+    <numeric name="gradient_spline_points" data="6" />
+  </custom>
+
+  <statistic extent="1.5" center="0.1 0.2 0.3"/>
+
+  <visual>
+    <quality shadowsize="8192"/>
+    <global azimuth="180" elevation="-30"/>
+    <scale framelength=".3" framewidth=".03"/>
+  </visual>
+
+  <default>
+    <geom solref=".001 1"/>
+  </default>
+
+  <compiler texturedir="./textures"/>
+
+  <worldbody>
+    <site name="world"/>
+    <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3"
+        directional="true" castshadow="true"/>
+    <geom name="floor" pos="0 0 0" size="0 0 0.05" type="plane" material="blue_grid"/>
+
+    <body name="target" mocap="true" pos="0.45 0 0.485">
+      <geom name="target"  type="cylinder" size="0.2286 0.011" contype="0" conaffinity="0" rgba=".5 .5 .5 .3"/>
+    </body>
+    
+    <body name="end_effector_target" mocap="true" pos="0.45 0 0.469">
+      <geom name="end_effector_target"  type="cylinder" size="0.0725 0.005" contype="0" conaffinity="0" rgba=".5 .5 .5 .3"/>
+    </body>
+
+    <body name="tray" pos="0.0 0.0 2.0">
+      <inertial mass="1" pos="0 0 0" diaginertia="0.013105 0.013105 0.026129"/>
+      <freejoint/>
+      <geom name="tray"  type="cylinder" size="0.2286 0.011" priority="1" condim="3" friction="0.4 .01 .003"/>
+    </body>
+
+    <body name="left_support" pos="0.8 0.15 0.447" quat="1 0 0 0">
+      <geom name="left_support"  type="box" size="0.2 0.01 0.024" priority="2" condim="3" friction="0.1 .01 .003"/>
+    </body>
+
+    <body name="right_support" pos="0.8 -0.15 0.447">
+      <geom name="right_support"  type="box" size="0.2 0.01 0.024" priority="2" condim="3" friction="0.1 .01 .003"/>
+    </body>
+  </worldbody>
+
+  <keyframe>
+    <key name="home" qpos="0.7 0.00 0.482 1 0 0 0 0.55 0.0 0.45"/>
+  </keyframe>
+
+  <sensor>
+    <user name="End Effector Target" dim="3" user="2 0.5 0 10 0.01"/>
+    <user name="Tray Target" dim="3" user="2 1 0 10 0.01"/>
+    <user name="Tray Orientation" dim="3" user="2 0.325 0 5 1"/>
+    <framepos name="end_effector" objtype="site" objname="eeff"/>
+    <framepos name="tray" objtype="geom" objname="tray"/>
+    <framepos name="target" objtype="geom" objname="target"/>
+    <framepos name="end_effector_target" objtype="geom" objname="end_effector_target"/>
+    <framequat name="tray_quat" objtype="geom" objname="tray"/>
+    <framequat name="center_support" objtype="geom" objname="left_support"/>
+    <framepos name="trace0" objtype="site" objname="eeff"/>
+    <framepos name="trace1" objtype="geom" objname="tray"/>
+  </sensor>
+
+  <include file="end_effector.xml"/>
+</mujoco>
