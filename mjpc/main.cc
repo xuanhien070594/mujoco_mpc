@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include <absl/flags/parse.h>
 
 #include <absl/flags/flag.h>
@@ -25,14 +26,17 @@
 
 ABSL_FLAG(std::string, task, "Quadruped Flat",
           "Which model to load on startup.");
+////#include "mjpc/task.h"
+////#include "mjpc/tasks/tasks.h"
+////#include "mjpc/utilities.h"
 
 // machinery for replacing command line error by a macOS dialog box
 // when running under Rosetta
 #if defined(__APPLE__) && defined(__AVX__)
 extern void DisplayErrorDialogBox(const char* title, const char* msg);
 static const char* rosetta_error_msg = nullptr;
-__attribute__((used, visibility("default")))
-extern "C" void _mj_rosettaError(const char* msg) {
+__attribute__((used, visibility("default"))) extern "C" void _mj_rosettaError(
+    const char* msg) {
   rosetta_error_msg = msg;
 }
 #endif
@@ -67,5 +71,6 @@ int main(int argc, char** argv) {
   }
 
   mjpc::StartApp(tasks, task_id);  // start with quadruped flat
+////  mjpc::StartApp(mjpc::GetTasks());  // start with quadruped flat
   return 0;
 }

@@ -24,6 +24,25 @@ target_link_libraries(
 )
 target_include_directories(threadpool PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
+find_package(lcm REQUIRED)
+include(${LCM_USE_FILE})
+
+lcm_wrap_types(
+  C_EXPORT my_lcmtypes
+  C_SOURCES c_sources
+  C_HEADERS c_headers
+  CPP_HEADERS cpp_headers
+  lcmtypes/lcmt_metadata.lcm
+  lcmtypes/lcmt_object_state.lcm
+  lcmtypes/lcmt_robot_output.lcm
+  lcmtypes/lcmt_saved_traj.lcm
+  lcmtypes/lcmt_c3_state.lcm
+  lcmtypes/lcmt_timestamped_saved_traj.lcm
+  lcmtypes/lcmt_trajectory_block.lcm
+)
+
+lcm_add_library(my_lcmtypes-cpp CPP ${cpp_headers})
+
 add_library(
   libmjpc STATIC
   states/state.cc
@@ -68,6 +87,8 @@ add_library(
   tasks/op3/stand.h
   tasks/panda/panda.cc
   tasks/panda/panda.h
+  tasks/plate_balancing/panda_plate_balancing.cc
+  tasks/plate_balancing/panda_plate_balancing.h
   tasks/particle/particle.cc
   tasks/particle/particle.h
   tasks/rubik/solve.cc
@@ -170,6 +191,9 @@ target_include_directories(libmjpc
   ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 
+target_include_directories(my_lcmtypes-cpp INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+
 add_executable(
   mjpc
   main.cc
@@ -185,7 +209,25 @@ target_link_libraries(
   threadpool
   Threads::Threads
 )
+add_executable(
+  standalone_controller
+  standalone_controller.cc
+)
+target_link_libraries(
+  standalone_controller
+  absl::flags
+  absl::flags_parse
+  absl::random_random
+  absl::strings
+  libmjpc
+  my_lcmtypes-cpp
+  mujoco::mujoco
+  threadpool
+  Threads::Threads
+  lcm
+)
 target_include_directories(mjpc PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_include_directories(standalone_controller PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_compile_options(mjpc PUBLIC ${MJPC_COMPILE_OPTIONS})
 target_link_options(mjpc PRIVATE ${MJPC_LINK_OPTIONS})
 target_compile_definitions(mjpc PRIVATE MJSIMULATE_STATIC)
