@@ -84,47 +84,42 @@ void Jack::ResidualFn::Residual(const mjModel* model,
 }
 
 void Jack::TransitionLocked(mjModel* model, mjData* data) {
+  // First, always update the end effector desired location to be right above
+  // the jack's current location.
+  double* jack_position = SensorByName(model, data, "jack");
+  data->mocap_pos[3] = jack_position[0];
+  data->mocap_pos[4] = jack_position[1];
+  data->mocap_pos[5] = jack_position[2] + 0.1;
+
+  // Second, update the jack desired location if the jack has reached its goal.
   double residuals[100];
   residual_.Residual(model, data, residuals);
-  double bring_dist = (mju_norm3(residuals + 3)) / 2;
+  double position_error = (mju_norm3(residuals + 3));
+  double angular_error = (mju_norm3(residuals + 6));
 
-  // reset:
-  // TODO:  figure out if we care about this
+  if (data->time > 0 && position_error < .02 && angular_error < 0.1) {
+    std::cout<<"Reached position ("<<position_error<<"m) and rotation ("
+      <<angular_error<<"rad) tolerances";
 
-  if (data->time > 0 && bring_dist < .05) {
-    if ((data->mocap_pos[0] == 0.45 && data->mocap_pos[2] == 0.485) ||
-        data->time < 10.0) {
-      // target:
-      data->mocap_pos[0] = 0.45;
-      data->mocap_pos[1] = 0.0;
-      data->mocap_pos[2] = 0.6;
-      data->mocap_quat[0] = 1;
-      data->mocap_quat[1] = 0;
-      data->mocap_quat[2] = 0;
+      // Toggle between two goals.
+    if (data->mocap_pos[0] == 0.45 && data->mocap_pos[1] == 0.2) {
+      std::cout<<" --> Switching to goal 2"<<std::endl;
+      data->mocap_pos[0] = 0.5;
+      data->mocap_pos[1] = -0.15;
+      data->mocap_pos[2] = 0.032;
+      data->mocap_quat[0] = -0.452;
+      data->mocap_quat[1] = -0.627;
+      data->mocap_quat[2] = 0.629;
       data->mocap_quat[3] = 0;
-      data->mocap_pos[3] = 0.45;
-      data->mocap_pos[4] = 0.0;
-      data->mocap_pos[5] = 0.584;
-      data->mocap_quat[4] = 1;
-      data->mocap_quat[5] = 0;
-      data->mocap_quat[6] = 0;
-      data->mocap_quat[7] = 0;
-      mju_normalize4(data->mocap_quat);
     } else {
-      data->mocap_pos[0] = 0.7;
-      data->mocap_pos[1] = 0.0;
-      data->mocap_pos[2] = 0.485;
-      data->mocap_quat[0] = 1;
-      data->mocap_quat[1] = 0;
-      data->mocap_quat[2] = 0;
-      data->mocap_quat[3] = 0;
-      data->mocap_pos[3] = 0.6;
-      data->mocap_pos[4] = 0.0;
-      data->mocap_pos[5] = 0.469;
-      data->mocap_quat[4] = 1;
-      data->mocap_quat[5] = 0;
-      data->mocap_quat[6] = 0;
-      data->mocap_quat[7] = 0;
+      std::cout<<" --> Switching to goal 1"<<std::endl;
+      data->mocap_pos[0] = 0.45;
+      data->mocap_pos[1] = 0.2;
+      data->mocap_pos[2] = 0.032;
+      data->mocap_quat[0] = 0.880;
+      data->mocap_quat[1] = 0.280;
+      data->mocap_quat[2] = -0.365;
+      data->mocap_quat[3] = -0.116;
     }
   }
 }
