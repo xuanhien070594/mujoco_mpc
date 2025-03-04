@@ -24,7 +24,7 @@
 #include "mjpc/app.h"
 #include "mjpc/tasks/tasks.h"
 
-ABSL_FLAG(std::string, task, "Quadruped Flat",
+ABSL_FLAG(std::string, task, "Jack",
           "Which model to load on startup.");
 ////#include "mjpc/task.h"
 ////#include "mjpc/tasks/tasks.h"

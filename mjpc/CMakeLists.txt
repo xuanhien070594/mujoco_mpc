@@ -24,6 +24,8 @@ target_link_libraries(
 )
 target_include_directories(threadpool PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
+# Direct where LCM installation can be found, then load the package.
+set(ENV{lcm_DIR} "/opt/lcm/1.4.0/lib/lcm/cmake")
 find_package(lcm REQUIRED)
 include(${LCM_USE_FILE})
 
@@ -89,6 +91,8 @@ add_library(
   tasks/panda/panda.h
   tasks/plate_balancing/panda_plate_balancing.cc
   tasks/plate_balancing/panda_plate_balancing.h
+  tasks/jack/jack.cc
+  tasks/jack/jack.h
   tasks/particle/particle.cc
   tasks/particle/particle.h
   tasks/rubik/solve.cc

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "mjpc/tasks/plate_balancing/panda_plate_balancing.h"
+#include "mjpc/tasks/jack/jack.h"
 
 #include <string>
 
@@ -23,36 +23,48 @@
 #include "mjpc/utilities.h"
 
 namespace mjpc {
-std::string PlateBalancing::XmlPath() const {
-  return GetModelPath("plate_balancing/task.xml");
+std::string Jack::XmlPath() const {
+  return GetModelPath("jack/task.xml");
 }
-std::string PlateBalancing::Name() const { return "PlateBalancing"; }
+std::string Jack::Name() const { return "Jack"; }
 
-// ---------- Residuals for plate balancing manipulation task ---------
-//   Number of residuals: 9
-//     Residual (0-2): end effector - target
-//     Residual (3-5): tray - target
-//     Residual (6-8): tray orientation - neutral orientation
+// ----------- Residuals for jack manipulation task -----------
+//   Number of residuals: 18
+//     Residual (0-2): end effector - end effector target
+//     Residual (3-5): jack - target
+//     Residual (6-8): jack orientation - target orientation
+//     Residual (9-11): end effector velocity
+//     Residual (12-14): jack linear velocity
+//     Residual (15-17): jack angular velocity
 // ------------------------------------------------------------
-void PlateBalancing::ResidualFn::Residual(const mjModel* model,
-                                          const mjData* data,
-                                          double* residual) const {
+void Jack::ResidualFn::Residual(const mjModel* model,
+                                const mjData* data,
+                                double* residual) const {
   int counter = 0;
 
-  // reach
   double* end_effector = SensorByName(model, data, "end_effector");
-  double* tray = SensorByName(model, data, "tray");
-  double* tray_orientation = SensorByName(model, data, "tray_quat");
+  double* jack = SensorByName(model, data, "jack");
+  double* jack_orientation = SensorByName(model, data, "jack_quat");
   double* target = SensorByName(model, data, "target");
-  double* end_effector_target =
-      SensorByName(model, data, "end_effector_target");
-  double* neutral_orientation = SensorByName(model, data, "center_support");
+  double* target_orientation = SensorByName(model, data, "target_quat");
+  double* end_effector_target = SensorByName(
+    model, data, "end_effector_target");
+  double* end_effector_linear_vel = SensorByName(
+    model, data, "end_effector_linear_vel");
+  double* jack_linear_vel = SensorByName(model, data, "jack_linear_vel");
+  double* jack_angular_vel = SensorByName(model, data, "jack_angular_vel");
 
   mju_sub3(residual + counter, end_effector, end_effector_target);
   counter += 3;
-  mju_sub3(residual + counter, tray, target);
+  mju_sub3(residual + counter, jack, target);
   counter += 3;
-  mju_subQuat(residual + counter, tray_orientation, neutral_orientation);
+  mju_subQuat(residual + counter, jack_orientation, target_orientation);
+  counter += 3;
+  mju_copy3(residual + counter, end_effector_linear_vel);
+  counter += 3;
+  mju_copy3(residual + counter, jack_linear_vel);
+  counter += 3;
+  mju_copy3(residual + counter, jack_angular_vel);
   counter += 3;
 
   // sensor dim sanity check
@@ -71,12 +83,13 @@ void PlateBalancing::ResidualFn::Residual(const mjModel* model,
   }
 }
 
-void PlateBalancing::TransitionLocked(mjModel* model, mjData* data) {
+void Jack::TransitionLocked(mjModel* model, mjData* data) {
   double residuals[100];
   residual_.Residual(model, data, residuals);
   double bring_dist = (mju_norm3(residuals + 3)) / 2;
 
   // reset:
+  // TODO:  figure out if we care about this
 
   if (data->time > 0 && bring_dist < .05) {
     if ((data->mocap_pos[0] == 0.45 && data->mocap_pos[2] == 0.485) ||

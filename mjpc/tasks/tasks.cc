@@ -32,6 +32,7 @@
 #include "mjpc/tasks/manipulation/manipulation.h"
 #include "mjpc/tasks/panda/panda.h"
 #include "mjpc/tasks/plate_balancing/panda_plate_balancing.h"
+#include "mjpc/tasks/jack/jack.h"
 // DEEPMIND INTERNAL IMPORT
 #include "mjpc/tasks/op3/stand.h"
 #include "mjpc/tasks/panda/panda.h"
@@ -65,6 +66,7 @@ std::vector<std::shared_ptr<Task>> GetTasks() {
       std::make_shared<Particle>(),
       std::make_shared<ParticleFixed>(),
       std::make_shared<PlateBalancing>(),
+      std::make_shared<Jack>(),
       std::make_shared<Rubik>(),
       std::make_shared<ShadowReorient>(),
       std::make_shared<Quadrotor>(),
