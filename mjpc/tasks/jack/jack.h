@@ -43,6 +43,10 @@ class Jack : public Task {
 
  private:
   ResidualFn residual_;
+  const double POSITION_SUCCESS_THRESHOLD_ = 0.02;
+  const double ROTATION_SUCCESS_THRESHOLD_ = 0.1;
+  const double POSITION_LOOKAHEAD_ = 0.15;
+  const double ROTATION_LOOKAHEAD_ = 2.0;
 };
 }  // namespace mjpc
 

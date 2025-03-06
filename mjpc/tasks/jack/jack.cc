@@ -29,13 +29,17 @@ std::string Jack::XmlPath() const {
 std::string Jack::Name() const { return "Jack"; }
 
 // ----------- Residuals for jack manipulation task -----------
-//   Number of residuals: 18
+//   Number of residuals: 24
 //     Residual (0-2): end effector - end effector target
 //     Residual (3-5): jack - target
 //     Residual (6-8): jack orientation - target orientation
 //     Residual (9-11): end effector velocity
 //     Residual (12-14): jack linear velocity
 //     Residual (15-17): jack angular velocity
+//     Residual (18-20): jack - final target
+//     Residual (21-23): jack orientation - final target orientation
+//   Note that residuals 18 through 23 do not factor into the MPC costs but are
+//   computed only to determine when the final goal should switch.
 // ------------------------------------------------------------
 void Jack::ResidualFn::Residual(const mjModel* model,
                                 const mjData* data,
@@ -47,6 +51,9 @@ void Jack::ResidualFn::Residual(const mjModel* model,
   double* jack_orientation = SensorByName(model, data, "jack_quat");
   double* target = SensorByName(model, data, "target");
   double* target_orientation = SensorByName(model, data, "target_quat");
+  double* final_target = SensorByName(model, data, "final_target");
+  double* final_target_orientation = SensorByName(
+    model, data, "final_target_quat");
   double* end_effector_target = SensorByName(
     model, data, "end_effector_target");
   double* end_effector_linear_vel = SensorByName(
@@ -66,6 +73,10 @@ void Jack::ResidualFn::Residual(const mjModel* model,
   counter += 3;
   mju_copy3(residual + counter, jack_angular_vel);
   counter += 3;
+  mju_sub3(residual + counter, jack, final_target);
+  counter += 3;
+  mju_subQuat(residual + counter, jack_orientation, final_target_orientation);
+  counter += 3;
 
   // sensor dim sanity check
   // TODO: use this pattern everywhere and make this a utility function
@@ -84,43 +95,92 @@ void Jack::ResidualFn::Residual(const mjModel* model,
 }
 
 void Jack::TransitionLocked(mjModel* model, mjData* data) {
+  /* Order of mocap bodies:  intermediate goal, final goal, end effector goal */
   // First, always update the end effector desired location to be right above
   // the jack's current location.
   double* jack_position = SensorByName(model, data, "jack");
-  data->mocap_pos[3] = jack_position[0];
-  data->mocap_pos[4] = jack_position[1];
-  data->mocap_pos[5] = jack_position[2] + 0.1;
+  data->mocap_pos[6] = jack_position[0];
+  data->mocap_pos[7] = jack_position[1];
+  data->mocap_pos[8] = jack_position[2] + 0.1;
 
-  // Second, update the jack desired location if the jack has reached its goal.
+  // Second, update the jack final desired location if the jack has reached its
+  // final goal.
   double residuals[100];
   residual_.Residual(model, data, residuals);
-  double position_error = (mju_norm3(residuals + 3));
-  double angular_error = (mju_norm3(residuals + 6));
+  double position_delta_vector[3] = {
+    -residuals[18], -residuals[19], -residuals[20]};
+  double rotation_delta_vector[3] = {
+    -residuals[21], -residuals[22], -residuals[23]};
+  double position_error = (mju_norm3(position_delta_vector));
+  double rotation_error = (mju_norm3(rotation_delta_vector));
 
-  if (data->time > 0 && position_error < .02 && angular_error < 0.1) {
+  if (data->time > 0 &&
+      position_error < POSITION_SUCCESS_THRESHOLD_ &&
+      rotation_error < ROTATION_SUCCESS_THRESHOLD_) {
     std::cout<<"Reached position ("<<position_error<<"m) and rotation ("
-      <<angular_error<<"rad) tolerances";
+      <<rotation_error<<"rad) tolerances";
 
       // Toggle between two goals.
     if (data->mocap_pos[0] == 0.45 && data->mocap_pos[1] == 0.2) {
       std::cout<<" --> Switching to goal 2"<<std::endl;
-      data->mocap_pos[0] = 0.5;
-      data->mocap_pos[1] = -0.15;
-      data->mocap_pos[2] = 0.032;
-      data->mocap_quat[0] = -0.452;
-      data->mocap_quat[1] = -0.627;
-      data->mocap_quat[2] = 0.629;
-      data->mocap_quat[3] = 0;
+      data->mocap_pos[3] = 0.5;
+      data->mocap_pos[4] = -0.15;
+      data->mocap_pos[5] = 0.032;
+      data->mocap_quat[4] = -0.452;
+      data->mocap_quat[5] = -0.627;
+      data->mocap_quat[6] = 0.629;
+      data->mocap_quat[7] = 0;
     } else {
       std::cout<<" --> Switching to goal 1"<<std::endl;
-      data->mocap_pos[0] = 0.45;
-      data->mocap_pos[1] = 0.2;
-      data->mocap_pos[2] = 0.032;
-      data->mocap_quat[0] = 0.880;
-      data->mocap_quat[1] = 0.280;
-      data->mocap_quat[2] = -0.365;
-      data->mocap_quat[3] = -0.116;
+      data->mocap_pos[3] = 0.45;
+      data->mocap_pos[4] = 0.2;
+      data->mocap_pos[5] = 0.032;
+      data->mocap_quat[4] = 0.880;
+      data->mocap_quat[5] = 0.280;
+      data->mocap_quat[6] = -0.365;
+      data->mocap_quat[7] = -0.116;
     }
   }
+
+  // Third, adjust the intermediate target to impose a lookahead on the final
+  // goal.
+  mjtNum intermediate_pos[3] = {
+    data->mocap_pos[3], data->mocap_pos[4], data->mocap_pos[5]};
+  mjtNum intermediate_quat[4] = {
+    data->mocap_quat[4], data->mocap_quat[5],
+    data->mocap_quat[6], data->mocap_quat[7]};
+  if (position_error > POSITION_LOOKAHEAD_) {
+    double scale = POSITION_LOOKAHEAD_ / position_error;
+    double scaled_position_delta_vec[3] = {
+      scale * position_delta_vector[0],
+      scale * position_delta_vector[1],
+      scale * position_delta_vector[2]};
+    intermediate_pos[0] = jack_position[0] + scaled_position_delta_vec[0];
+    intermediate_pos[1] = jack_position[1] + scaled_position_delta_vec[1];
+    intermediate_pos[2] = jack_position[2] + scaled_position_delta_vec[2];
+  }
+  if (rotation_error > ROTATION_LOOKAHEAD_) {
+    double scale = ROTATION_LOOKAHEAD_ / rotation_error;
+    double scaled_rotation_delta_vec[3] = {
+      scale * rotation_delta_vector[0],
+      scale * rotation_delta_vector[1],
+      scale * rotation_delta_vector[2]};
+    double* jack_quat = SensorByName(model, data, "jack_quat");
+    mjtNum jack_quat_copy[4];
+    mju_copy4(jack_quat_copy, jack_quat);
+    mju_quatIntegrate(jack_quat_copy, scaled_rotation_delta_vec, 1);
+    intermediate_quat[0] = jack_quat_copy[0];
+    intermediate_quat[1] = jack_quat_copy[1];
+    intermediate_quat[2] = jack_quat_copy[2];
+    intermediate_quat[3] = jack_quat_copy[3];
+  }
+  data->mocap_pos[0] = intermediate_pos[0];
+  data->mocap_pos[1] = intermediate_pos[1];
+  data->mocap_pos[2] = intermediate_pos[2];
+  data->mocap_quat[0] = intermediate_quat[0];
+  data->mocap_quat[1] = intermediate_quat[1];
+  data->mocap_quat[2] = intermediate_quat[2];
+  data->mocap_quat[3] = intermediate_quat[3];
+
 }
 }  // namespace mjpc

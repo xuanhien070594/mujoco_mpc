@@ -64,6 +64,18 @@
       <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0 0 0.1" rgba=".2 .2 1 .4"/>
     </body>
 
+    <body name="final_target" pos="0.45 0.2 0.032" quat="0.880 0.280 -0.365 -0.116" gravcomp="1" mocap="true">
+      <!-- Capsules in order BRG, along ZXY directions. -->
+      <geom class="no_collision" type="capsule" size="0.025" fromto="0 0 -0.0625 0 0 0.0625" mass=".33" rgba=".2 .2 1 0"/>
+      <geom class="no_collision" type="capsule" size="0.025" fromto="-0.0625 0 0 0.0625 0 0" mass=".33" rgba="1 .2 .2 0"/>
+      <geom class="no_collision" type="capsule" size="0.025" fromto="0 -0.0625 0 0 0.0625 0" mass=".33" rgba=".2 1 .2 0"/>
+
+      <!-- Add triad for viewing orientation. -->
+      <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0.1 0 0" rgba="1 .2 .2 .4"/>
+      <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0 0.1 0" rgba=".2 1 .2 .4"/>
+      <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0 0 0.1" rgba=".2 .2 1 .4"/>
+    </body>
+
     <body name="end_effector_target" mocap="true" pos="0.45 0 0.15">
       <geom name="end_effector_target" type="sphere" size="0.0195" class="no_collision" rgba=".5 .5 .5 .3"/>
     </body>
@@ -84,31 +96,34 @@
 
   <keyframe>
     <!-- TODO:  It's unclear what this is used for. -->
-    <!-- Order:  EE xyz, jack wxyz, jack xyz -->
+    <!-- Guessed order:  EE xyz, jack wxyz, jack xyz -->
     <key name="home" qpos="0.7 0.00 0.482 1 0 0 0 0.55 0.0 0.45"/>
   </keyframe>
 
   <sensor>
-    <!-- These <user> tags specify the residuals which contribute to costs. -->
-    <!-- norm_type=1 means kQuadratic norm:  y = 0.5 * x' * x -->
-    <!-- user="norm_type weight weight_lower weight_upper ??" -->
-    <!-- TODO:  Unsure what the last two numbers are for norm_type=1. -->
-    <user name="End Effector Target" dim="3" user="1 0.1 0 10 .05 4"/>
-    <user name="Jack Target" dim="3" user="1 5 0 10 .05 4"/>
-    <user name="Jack Orientation" dim="3" user="1 0.2 0 5 .05 4"/>
-    <user name="End Effector Velocity" dim="3" user="1 0.0 0 10 .05 4"/>
-    <user name="Jack Linear Velocity" dim="3" user="1 0.0 0 10 .05 4"/>
-    <user name="Jack Angular Velocity" dim="3" user="1 0.0 0 10 .05 4"/>
+    <!-- These <user> tags specify the residuals and how they contribute to costs. -->
+    <!-- norm_type=0 means kQuadratic norm:  y = 0.5 * x' * x -->
+    <!-- user="norm_type weight weight_lower weight_upper extras_by_norm_type" -->
+    <user name="End Effector Target" dim="3" user="0 0.1 0 5"/>
+    <user name="Jack Target" dim="3" user="0 40 0 100"/>
+    <user name="Jack Orientation" dim="3" user="0 0.5 0 5"/>
+    <user name="End Effector Velocity" dim="3" user="0 0.01 0 1"/>
+    <user name="Jack Linear Velocity" dim="3" user="0 0.05 0 0.1"/>
+    <user name="Jack Angular Velocity" dim="3" user="0 0.05 0 0.1"/>
+    <user name="Jack Final Target" dim="3" user="0 0 0 0"/>
+    <user name="Jack Final Orientation" dim="3" user="0 0 0 0"/>
 
     <!-- Sensors for body locations. -->
     <framepos name="end_effector" objtype="site" objname="eeff"/>
     <framepos name="jack" objtype="body" objname="jack"/>
     <framepos name="target" objtype="body" objname="target"/>
+    <framepos name="final_target" objtype="body" objname="final_target"/>
     <framepos name="end_effector_target" objtype="geom" objname="end_effector_target"/>
 
     <!-- Sensors for body orientations. -->
     <framequat name="jack_quat" objtype="body" objname="jack"/>
     <framequat name="target_quat" objtype="body" objname="target"/>
+    <framequat name="final_target_quat" objtype="body" objname="final_target"/>
 
     <!-- Sensors for body velocities. -->
     <framelinvel name="end_effector_linear_vel" objtype="site" objname="eeff"/>
