@@ -214,11 +214,28 @@ target_link_libraries(
   Threads::Threads
 )
 add_executable(
-  standalone_controller
-  standalone_controller.cc
+  standalone_plate_controller
+  standalone_plate_controller.cc
 )
 target_link_libraries(
-  standalone_controller
+  standalone_plate_controller
+  absl::flags
+  absl::flags_parse
+  absl::random_random
+  absl::strings
+  libmjpc
+  my_lcmtypes-cpp
+  mujoco::mujoco
+  threadpool
+  Threads::Threads
+  lcm
+)
+add_executable(
+  standalone_jack_controller
+  standalone_jack_controller.cc
+)
+target_link_libraries(
+  standalone_jack_controller
   absl::flags
   absl::flags_parse
   absl::random_random
@@ -231,7 +248,8 @@ target_link_libraries(
   lcm
 )
 target_include_directories(mjpc PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
-target_include_directories(standalone_controller PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_include_directories(standalone_plate_controller PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_include_directories(standalone_jack_controller PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_compile_options(mjpc PUBLIC ${MJPC_COMPILE_OPTIONS})
 target_link_options(mjpc PRIVATE ${MJPC_LINK_OPTIONS})
 target_compile_definitions(mjpc PRIVATE MJSIMULATE_STATIC)
