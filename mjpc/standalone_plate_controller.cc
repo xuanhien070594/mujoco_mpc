@@ -46,6 +46,7 @@ class Handler {
     time_ = 1e-6 * msg->utime;
     franka_positions_ = {msg->state.begin(), msg->state.begin() + 3};
     franka_velocities_ = {msg->state.begin() + 10, msg->state.begin() + 10 + 3};
+    // TODO seems unnecessary since overwritten right after
     tray_positions_ = {msg->state.begin() + 3, msg->state.begin() + 3 + 7};
     // mujoco state goes pos then orientation, msg does orientation then pos
     tray_positions_[0] = msg->state[7];
@@ -55,6 +56,7 @@ class Handler {
     tray_positions_[4] = msg->state[4];
     tray_positions_[5] = msg->state[5];
     tray_positions_[6] = msg->state[6];
+    // TODO:  why didn't this order matter?
     tray_velocities_ = {msg->state.begin() + 10 + 3,
                         msg->state.begin() + 10 + 3 + 6};
   }
@@ -81,7 +83,8 @@ int main(int argc, char** argv) {
   // Set up the variables
   mjModel* model = new mjModel();
   std::vector<std::shared_ptr<mjpc::Task>> tasks = mjpc::GetTasks();
-  std::shared_ptr<mjpc::Task> task = tasks[14];
+  // Note:  The task index needs to match the order of the tasks returned above.
+  std::shared_ptr<mjpc::Task> task = tasks[16];
   std::unique_ptr<mjpc::ResidualFn> residual_fn;
 
   // Load the model

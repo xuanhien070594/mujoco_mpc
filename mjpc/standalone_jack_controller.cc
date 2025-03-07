@@ -35,42 +35,73 @@ class Handler {
   Handler() {
     franka_positions_ = std::vector<double>(3);
     franka_velocities_ = std::vector<double>(3);
-    tray_positions_ = std::vector<double>(7);
-    tray_velocities_ = std::vector<double>(6);
+    jack_positions_ = std::vector<double>(7);
+    jack_velocities_ = std::vector<double>(6);
     franka_target_ = std::vector<double>(3);
-    tray_target_ = std::vector<double>(3);
+    jack_target_ = std::vector<double>(7);
+    jack_final_target_ = std::vector<double>(7);
   }
   ~Handler() {}
   void handle_mpc_state(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
                         const dairlib::lcmt_c3_state* msg) {
     time_ = 1e-6 * msg->utime;
+
+    // msg (from dairlib) is an lcmt_c3_state with ordering:
+    // ee_xyz, jack_quat, jack_xyz, ee_lin_vel, jack_ang_vel, jack_lin_vel
+    // MuJoCo does state orderings of position terms first, then rotation terms.
     franka_positions_ = {msg->state.begin(), msg->state.begin() + 3};
     franka_velocities_ = {msg->state.begin() + 10, msg->state.begin() + 10 + 3};
-    tray_positions_ = {msg->state.begin() + 3, msg->state.begin() + 3 + 7};
-    // mujoco state goes pos then orientation, msg does orientation then pos
-    tray_positions_[0] = msg->state[7];
-    tray_positions_[1] = msg->state[8];
-    tray_positions_[2] = msg->state[9];
-    tray_positions_[3] = msg->state[3];
-    tray_positions_[4] = msg->state[4];
-    tray_positions_[5] = msg->state[5];
-    tray_positions_[6] = msg->state[6];
-    tray_velocities_ = {msg->state.begin() + 10 + 3,
-                        msg->state.begin() + 10 + 3 + 6};
+    // Flip ordering to match MuJoCo's linear-first convention.
+    jack_positions_[0] = msg->state[7];
+    jack_positions_[1] = msg->state[8];
+    jack_positions_[2] = msg->state[9];
+    jack_positions_[3] = msg->state[3];
+    jack_positions_[4] = msg->state[4];
+    jack_positions_[5] = msg->state[5];
+    jack_positions_[6] = msg->state[6];
+    // Flip ordering to match MuJoCo's linear-first convention.
+    // NOTE:  This is different from PlateBalancing example, which I believe did
+    // not adequately flip the velocities for the object.
+    jack_velocities_[0] = msg->state[16];
+    jack_velocities_[1] = msg->state[17];
+    jack_velocities_[2] = msg->state[18];
+    jack_velocities_[3] = msg->state[13];
+    jack_velocities_[4] = msg->state[14];
+    jack_velocities_[5] = msg->state[15];
   }
   void handle_mpc_target(const lcm::ReceiveBuffer* rbuf,
                          const std::string& chan,
                          const dairlib::lcmt_c3_state* msg) {
     franka_target_ = {msg->state.begin(), msg->state.begin() + 3};
-    tray_target_ = {msg->state.begin() + 7, msg->state.begin() + 10};
+    // Flip ordering to match MuJoCo's linear-first convention.
+    jack_target_[0] = msg->state[7];
+    jack_target_[1] = msg->state[8];
+    jack_target_[2] = msg->state[9];
+    jack_target_[3] = msg->state[3];
+    jack_target_[4] = msg->state[4];
+    jack_target_[5] = msg->state[5];
+    jack_target_[6] = msg->state[6];
+  }
+  void handle_mpc_final_target(const lcm::ReceiveBuffer* rbuf,
+                               const std::string& chan,
+                               const dairlib::lcmt_c3_state* msg) {
+    // Flip ordering to match MuJoCo's linear-first convention.
+    jack_final_target_[0] = msg->state[7];
+    jack_final_target_[1] = msg->state[8];
+    jack_final_target_[2] = msg->state[9];
+    jack_final_target_[3] = msg->state[3];
+    jack_final_target_[4] = msg->state[4];
+    jack_final_target_[5] = msg->state[5];
+    jack_final_target_[6] = msg->state[6];
   }
   double time_;
   std::vector<double> franka_positions_;
   std::vector<double> franka_velocities_;
-  std::vector<double> tray_positions_;
-  std::vector<double> tray_velocities_;
+  std::vector<double> jack_positions_;
+  std::vector<double> jack_velocities_;
   std::vector<double> franka_target_;
-  std::vector<double> tray_target_;
+  std::vector<double> jack_target_;
+  std::vector<double> jack_final_target_;
 };
 
 int main(int argc, char** argv) {
@@ -81,7 +112,8 @@ int main(int argc, char** argv) {
   // Set up the variables
   mjModel* model = new mjModel();
   std::vector<std::shared_ptr<mjpc::Task>> tasks = mjpc::GetTasks();
-  std::shared_ptr<mjpc::Task> task = tasks[14];
+  // Note:  The task index needs to match the order of the tasks returned above.
+  std::shared_ptr<mjpc::Task> task = tasks[17];
   std::unique_ptr<mjpc::ResidualFn> residual_fn;
 
   // Load the model
@@ -108,10 +140,14 @@ int main(int argc, char** argv) {
   int object_pos_start = 0;
   int object_quat_start = 3;
   std::vector<double> action = {-0.1, 0.1, 0};
+  // TODO:  seems to be in order object pos, object quat, ee pos but unsure.
   std::vector<double> qpos = {0.7, 0.00, 0.485, 1, 0, 0, 0, 0.55, 0.0, 0.45};
   std::vector<double> qvel = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-  std::vector<double> mocap_pos = {0.45, 0, 0.485, 0.45, 0, 0.469};
-  std::vector<double> mocap_quat = {1, 0, 0, 0, 1, 0, 0, 0};
+  // Mocap bodies in order:  intermediate goal, final goal, end effector goal.
+  std::vector<double> mocap_pos = {0.45, 0.1, 0.032,  // intermediate goal
+                                   0.45, 0.2, 0.032,  // final goal
+                                   0.45, 0, 0.132};   // end effector goal
+  std::vector<double> mocap_quat = {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
   std::vector<double> user_data = {0};  // size is actually 0
   double time = 0;
   mjpc::State mpc_state = mjpc::State();
@@ -124,7 +160,7 @@ int main(int argc, char** argv) {
    * lcmtypes
    */
   dairlib::lcmt_robot_output robot_state;
-  dairlib::lcmt_object_state tray_state;
+  dairlib::lcmt_object_state jack_state;
   dairlib::lcmt_timestamped_saved_traj actor_traj;
   dairlib::lcmt_timestamped_saved_traj object_traj;
   dairlib::lcmt_saved_traj raw_actor_traj;
@@ -179,6 +215,8 @@ int main(int argc, char** argv) {
   Handler handlerObject;
   lcm.subscribe("C3_ACTUAL", &Handler::handle_mpc_state, &handlerObject);
   lcm.subscribe("C3_TARGET", &Handler::handle_mpc_target, &handlerObject);
+  lcm.subscribe("C3_FINAL_TARGET", &Handler::handle_mpc_final_target,
+                &handlerObject);
   /**
    * End lcmtypes
    */
@@ -195,8 +233,6 @@ int main(int argc, char** argv) {
   std::cout << "num parameters: " << agent->ActivePlanner().NumParameters()
             << std::endl;
 
-  // model->opt.integrator = agent->inte
-  std::vector<double> distance_to_goal = std::vector<double>(3);
   // control loop
   while (true) {
     if (lcm.getFileno() != 0) {
@@ -206,15 +242,23 @@ int main(int argc, char** argv) {
     }
 
     time = handlerObject.time_;
-    // the order of the positions are different between C3 and mjmpc
-    mju_copy(qpos.data(), handlerObject.tray_positions_.data(), 7);
+    // Order of the positions are different between C3 and mjmpc:
+    // C3 order:  {ee_xyz, object_quat, object_xyz}
+    // MJPC order:  qpos is {object_xyz, object_quat, ee_xyz}
+    mju_copy(qpos.data(), handlerObject.jack_positions_.data(), 7);
     mju_copy(qpos.data() + 7, handlerObject.franka_positions_.data(), 3);
-    mju_copy(qvel.data(), handlerObject.tray_velocities_.data(), 6);
+    mju_copy(qvel.data(), handlerObject.jack_velocities_.data(), 6);
     mju_copy(qvel.data() + 6, handlerObject.franka_velocities_.data(), 3);
 
-    // copy over the new target state
-    mju_copy(mocap_pos.data(), handlerObject.tray_target_.data(), 3);
-    mju_copy(mocap_pos.data() + 3, handlerObject.franka_target_.data(), 3);
+    // Copy over the new target state:  mocap ordering is intermediate, final,
+    // then ee targets.
+    mju_copy(mocap_pos.data(), handlerObject.jack_target_.data(), 3);
+    mju_copy(mocap_pos.data() + 3, handlerObject.jack_final_target_.data(), 3);
+    mju_copy(mocap_pos.data() + 6, handlerObject.franka_target_.data(), 3);
+
+    mju_copy(mocap_quat.data(), handlerObject.jack_target_.data() + 3, 4);
+    mju_copy(
+      mocap_quat.data() + 4, handlerObject.jack_final_target_.data() + 3, 4);
 
     action[0] = actor_force_traj.datapoints[0][0];
     action[1] = actor_force_traj.datapoints[1][0];
@@ -230,7 +274,8 @@ int main(int argc, char** argv) {
     // copy trajectory to send via lcm
     auto trajectory = agent->ActivePlanner().BestTrajectory();
 
-    // Scaling the action
+    // Scaling the action -- need to convert the ctrlrange to forcerange, both
+    // defined in end_effector.xml.
     actor_force_traj.time_vec = trajectory->times;
     for (int k = 0; k < trajectory->horizon; ++k) {
       actor_force_traj.datapoints[0][k] =
@@ -238,7 +283,7 @@ int main(int argc, char** argv) {
       actor_force_traj.datapoints[1][k] =
           10 * trajectory->actions[1 + k * trajectory->dim_action];
       actor_force_traj.datapoints[2][k] =
-          30 * trajectory->actions[2 + k * trajectory->dim_action];
+          10 * trajectory->actions[2 + k * trajectory->dim_action];
     }
     actor_pos_traj.time_vec = trajectory->times;
     for (int k = 0; k < trajectory->horizon; ++k) {
@@ -273,8 +318,8 @@ int main(int argc, char** argv) {
     actor_traj.utime = time * 1e6;
     object_traj.saved_traj = raw_object_traj;
     object_traj.utime = time * 1e6;
-    lcm.publish("C3_TRAJECTORY_ACTOR", &actor_traj);
-    lcm.publish("C3_TRAJECTORY_TRAY", &object_traj);
+    lcm.publish("TRACKING_TRAJECTORY_ACTOR", &actor_traj);
+    lcm.publish("TRACKING_TRAJECTORY_OBJECT", &object_traj);
   }
 
   return 0;
