@@ -5,9 +5,11 @@
 
   <worldbody>
     <light name="top" pos="0 0 2" mode="trackcom"/>
-    <body name="base_link">
+    <body name="end_effector_tip">
       <!-- TODO:  check friction coefficients. -->
       <geom type="sphere" size="0.0195" mass="0.057" priority="1" condim="3" friction="0.6 .01 .003"/>
+      <geom type="cylinder" size="0.0127 0.0508" mass="0.1340688" pos="0 0 0.0661" priority="1" condim="3"/>
+      <geom type="cylinder" size="0.0315 0.0048" mass="0.0779312" pos="0 0 0.1217" priority="1" condim="3"/>
       <!-- TODO:  change range limits to better suit task. -->
         <joint name="end_effector_x" type="slide" range="0.15 0.75" axis="1 0 0" limited="true"/>
           <joint name="end_effector_y" type="slide" range="-0.6 0.6" axis="0 1 0" limited="true"/>

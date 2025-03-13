@@ -14,21 +14,25 @@
 
   <custom>
     <numeric name="agent_planner" data="0" />
-    <numeric name="agent_horizon" data="0.3" />
+    <numeric name="agent_horizon" data="0.3" />  <!-- 1.0 -->
     <numeric name="agent_timestep" data="0.01" />
     <numeric name="agent_policy_width" data="0.001" />
-    <numeric name="sampling_trajectories" data="30"/>
-    <numeric name="sampling_spline_points" data="5" />
-    <numeric name="sampling_exploration" data="0.1" />
+    <numeric name="sampling_trajectories" data="30"/>   <!-- 116 -->
+    <numeric name="sampling_spline_points" data="5"/>  <!-- 6 -->
+    <!-- sampling_exploration is "Noise Std" slider in GUI -->
+    <numeric name="sampling_exploration" data="0.3 0.0" />
     <numeric name="gradient_spline_points" data="6" />
+
+    <!-- cem -->
+    <numeric name="n_elite" data="4" />
+    <numeric name="std_min" data="0.5" />
   </custom>
 
-  <statistic extent="1.5" center="0.1 0.2 0.3"/>
-
+  <!-- Set camera angle. -->
+  <statistic extent="1.0" center="0.1 0.05 -0.1"/>
   <visual>
     <quality shadowsize="8192"/>
-    <global azimuth="180" elevation="-30"/>
-    <scale framelength=".3" framewidth=".03"/>
+    <global azimuth="200" elevation="-25" />
   </visual>
 
   <default>
@@ -104,12 +108,12 @@
     <!-- These <user> tags specify the residuals and how they contribute to costs. -->
     <!-- norm_type=0 means kQuadratic norm:  y = 0.5 * x' * x -->
     <!-- user="norm_type weight weight_lower weight_upper extras_by_norm_type" -->
-    <user name="End Effector Target" dim="3" user="0 0.1 0 5"/>
-    <user name="Jack Target" dim="3" user="0 40 0 100"/>
-    <user name="Jack Orientation" dim="3" user="0 0.5 0 5"/>
-    <user name="End Effector Velocity" dim="3" user="0 0.01 0 1"/>
-    <user name="Jack Linear Velocity" dim="3" user="0 0.05 0 0.1"/>
-    <user name="Jack Angular Velocity" dim="3" user="0 0.05 0 0.1"/>
+    <user name="End Effector Target" dim="3" user="0 0.1 0 20"/>  <!-- 5 -->
+    <user name="Jack Target" dim="3" user="0 90 0 200"/>
+    <user name="Jack Orientation" dim="3" user="0 0.8 0 4"/>
+    <user name="End Effector Velocity" dim="3" user="0 0 0 0.2"/>  <!-- 0.05 -->
+    <user name="Jack Linear Velocity" dim="3" user="0 0 0 0.05"/>  <!-- 0.025 -->
+    <user name="Jack Angular Velocity" dim="3" user="0 0 0 0.02"/>  <!-- 0.005 -->
     <user name="Jack Final Target" dim="3" user="0 0 0 0"/>
     <user name="Jack Final Orientation" dim="3" user="0 0 0 0"/>
 
