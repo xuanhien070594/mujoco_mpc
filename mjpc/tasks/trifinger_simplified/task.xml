@@ -1,0 +1,116 @@
+<mujoco model="Simplified Trifinger Cube Rotation">
+  <include file="../common.xml"/>
+
+  <size memory="1M"/>
+
+  <!-- const char kPlannerNames[] =
+    "Sampling\n"
+    "Gradient\n"
+    "iLQG\n"
+    "iLQS\n"
+    "Robust Sampling\n"
+    "Cross Entropy\n"
+    "Sample Gradient"; -->
+
+  <custom>
+    <numeric name="agent_planner" data="0" />
+    <numeric name="agent_horizon" data="0.3" />  <!-- 1.0 -->
+    <numeric name="agent_timestep" data="0.01" />
+    <numeric name="agent_policy_width" data="0.001" />
+    <numeric name="sampling_trajectories" data="128"/>   <!-- 116 -->
+    <numeric name="sampling_spline_points" data="5"/>  <!-- 6 -->
+    <!-- sampling_exploration is "Noise Std" slider in GUI -->
+    <numeric name="sampling_exploration" data="0.3 0.0" />
+    <numeric name="gradient_spline_points" data="6" />
+
+    <!-- cem -->
+    <numeric name="n_elite" data="4" />
+    <numeric name="std_min" data="0.5" />
+  </custom>
+
+  <!-- Set camera angle. -->
+  <statistic extent="1.0" center="0.1 0.05 -0.1"/>
+  <visual>
+    <quality shadowsize="8192"/>
+    <global azimuth="200" elevation="-25" />
+  </visual>
+
+  <default>
+    <geom solref=".001 1"/>
+    <default class="no_collision">
+      <geom group="1" contype="0" conaffinity="0" mass="0"/>
+    </default>
+  </default>
+
+  <compiler texturedir="./textures"/>
+
+  <worldbody>
+    <site name="world"/>
+    <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3" directional="true" castshadow="true"/>
+
+    <!-- Grid for rendering shows up just below table surface. -->
+    <geom name="floor" pos="0 0 0" size="0 0 0.05" type="plane" material="blue_grid"/>
+
+
+    <body name="target" pos="0 0 0.0325" quat="-0.4161468 0 0 0.9092974" gravcomp="1" mocap="true">
+      <!-- Capsules in order BRG, along ZXY directions. -->
+      <geom class="no_collision" type="box" size="0.0325 0.0325 0.0325" mass="0.094" rgba=".2 .2 1 0.4"/>
+
+      <!-- Add triad for viewing orientation. -->
+      <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0.1 0 0" rgba="1 .2 .2 .4"/>
+      <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0 0.1 0" rgba=".2 1 .2 .4"/>
+      <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0 0 0.1" rgba=".2 .2 1 .4"/>
+    </body>
+    <body name="cube" pos="0 0 0.0325">
+      <freejoint/>
+      <geom type="box"  size="0.0325 0.0325 0.0325" pos="0.0 0.0 0.0" quat="1 0 0 0" mass="0.094" condim="6" friction="0.5" rgba="0.2 0.2 1 1"/>
+      <!-- Add triad for viewing orientation. -->
+      <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0.1 0 0" rgba="1 .2 .2 .4"/>
+      <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0 0.1 0" rgba=".2 1 .2 .4"/>
+      <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0 0 0.1" rgba=".2 .2 1 .4"/>
+    </body>
+  </worldbody>
+
+  <keyframe>
+    <!-- TODO:  It's unclear what this is used for. -->
+    <!-- Guessed order:  EE xyz, jack wxyz, jack xyz -->
+    <key name="home" qpos=" 0 0.0 0.0325 1 0 0 0 0 0.06 0.0325 0 -0.06 0.0325 0.06 0 0.0325 "/>
+  </keyframe>
+
+  <sensor>
+    <!-- These <user> tags specify the residuals and how they contribute to costs. -->
+    <!-- norm_type=0 means kQuadratic norm:  y = 0.5 * x' * x -->
+    <!-- user="norm_type weight weight_lower weight_upper extras_by_norm_type" -->
+    <user name="Cube Target" dim="3" user="0 200 0 200"/>
+    <user name="Cube Orientation" dim="3" user="0 33 0 50"/>
+    <user name="Cube Linear Velocity" dim="3" user="0 0 0 0.05"/>  <!-- 0.025 -->
+    <user name="Cube Angular Velocity" dim="3" user="0 10 0 10"/>  <!-- 0.005 -->
+    <user name="Fingertip 0 Linear Velocity" dim="3" user="0 10.0 0 10.0"/>  <!-- 0.005 -->
+    <user name="Fingertip 1 Linear Velocity" dim="3" user="0 10.0 0 10.0"/>  <!-- 0.005 -->
+    <user name="Fingertip 2 Linear Velocity" dim="3" user="0 10.0 0 10.0"/>  <!-- 0.005 -->
+
+    <!-- Sensors for fingertips velocities. -->
+    <framelinvel name="fingertip0_linear_vel" objtype="body" objname="fingertip0"/>
+    <framelinvel name="fingertip1_linear_vel" objtype="body" objname="fingertip1"/>
+    <framelinvel name="fingertip2_linear_vel" objtype="body" objname="fingertip2"/>
+
+    <framepos name="cube" objtype="body" objname="cube"/>
+    <framepos name="target" objtype="body" objname="target"/>
+
+    <!-- Sensors for body orientations. -->
+    <framequat name="cube_quat" objtype="body" objname="cube"/>
+    <framequat name="target_quat" objtype="body" objname="target"/>
+
+    <!-- Sensors for body velocities. -->
+    <framelinvel name="cube_linear_vel" objtype="body" objname="cube"/>
+    <frameangvel name="cube_angular_vel" objtype="body" objname="cube"/>
+
+    <!-- Sensors for traces. -->
+    <framepos name="trace0" objtype="site" objname="fingertip0"/>
+    <framepos name="trace1" objtype="site" objname="fingertip1"/>
+    <framepos name="trace2" objtype="site" objname="fingertip2"/>
+    <framepos name="trace3" objtype="body" objname="cube"/>
+  </sensor>
+
+  <include file="simplified_trifinger.xml"/>
+</mujoco>

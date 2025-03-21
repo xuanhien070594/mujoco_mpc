@@ -39,6 +39,7 @@
 #include "mjpc/tasks/rubik/solve.h"
 #include "mjpc/tasks/shadow_reorient/hand.h"
 #include "mjpc/tasks/swimmer/swimmer.h"
+#include "mjpc/tasks/trifinger_simplified/simplified_trifinger.h"
 #include "mjpc/tasks/walker/walker.h"
 
 namespace mjpc {
@@ -69,6 +70,7 @@ std::vector<std::shared_ptr<Task>> GetTasks() {
       std::make_shared<QuadrupedHill>(),
       std::make_shared<Swimmer>(),
       std::make_shared<Walker>(),
+      std::make_shared<SimplifiedTrifinger>(),
   };
 }
-}  // namespace mjpc
+} // namespace mjpc
