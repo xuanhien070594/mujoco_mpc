@@ -279,11 +279,11 @@ int main(int argc, char** argv) {
     actor_force_traj.time_vec = trajectory->times;
     for (int k = 0; k < trajectory->horizon; ++k) {
       actor_force_traj.datapoints[0][k] =
-          10 * trajectory->actions[0 + k * trajectory->dim_action];
+          1.5 * trajectory->actions[0 + k * trajectory->dim_action];
       actor_force_traj.datapoints[1][k] =
-          10 * trajectory->actions[1 + k * trajectory->dim_action];
+          1.5 * trajectory->actions[1 + k * trajectory->dim_action];
       actor_force_traj.datapoints[2][k] =
-          10 * trajectory->actions[2 + k * trajectory->dim_action];
+          1.5 * trajectory->actions[2 + k * trajectory->dim_action];
     }
     actor_pos_traj.time_vec = trajectory->times;
     for (int k = 0; k < trajectory->horizon; ++k) {

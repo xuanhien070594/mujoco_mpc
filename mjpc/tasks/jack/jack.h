@@ -47,6 +47,7 @@ class Jack : public Task {
   const double ROTATION_SUCCESS_THRESHOLD_ = 0.1;
   const double POSITION_LOOKAHEAD_ = 0.15;
   const double ROTATION_LOOKAHEAD_ = 2.0;
+  mutable double time_to_goal_ = 0;
 };
 }  // namespace mjpc
 

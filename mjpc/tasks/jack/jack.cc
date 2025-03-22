@@ -29,16 +29,17 @@ std::string Jack::XmlPath() const {
 std::string Jack::Name() const { return "Jack"; }
 
 // ----------- Residuals for jack manipulation task -----------
-//   Number of residuals: 24
+//   Number of residuals: 27
 //     Residual (0-2): end effector - end effector target
 //     Residual (3-5): jack - target
 //     Residual (6-8): jack orientation - target orientation
 //     Residual (9-11): end effector velocity
 //     Residual (12-14): jack linear velocity
 //     Residual (15-17): jack angular velocity
-//     Residual (18-20): jack - final target
-//     Residual (21-23): jack orientation - final target orientation
-//   Note that residuals 18 through 23 do not factor into the MPC costs but are
+//     Residual (18-20): actuation
+//     Residual (21-23): jack - final target
+//     Residual (24-26): jack orientation - final target orientation
+//   Note that residuals 21 through 26 do not factor into the MPC costs but are
 //   computed only to determine when the final goal should switch.
 // ------------------------------------------------------------
 void Jack::ResidualFn::Residual(const mjModel* model,
@@ -72,6 +73,8 @@ void Jack::ResidualFn::Residual(const mjModel* model,
   mju_copy3(residual + counter, jack_linear_vel);
   counter += 3;
   mju_copy3(residual + counter, jack_angular_vel);
+  counter += 3;
+  mju_copy3(residual + counter, data->actuator_force);
   counter += 3;
   mju_sub3(residual + counter, jack, final_target);
   counter += 3;
@@ -108,17 +111,18 @@ void Jack::TransitionLocked(mjModel* model, mjData* data) {
   double residuals[100];
   residual_.Residual(model, data, residuals);
   double position_delta_vector[3] = {
-    -residuals[18], -residuals[19], -residuals[20]};
-  double rotation_delta_vector[3] = {
     -residuals[21], -residuals[22], -residuals[23]};
+  double rotation_delta_vector[3] = {
+    -residuals[24], -residuals[25], -residuals[26]};
   double position_error = (mju_norm3(position_delta_vector));
   double rotation_error = (mju_norm3(rotation_delta_vector));
 
   if (data->time > 0 &&
       position_error < POSITION_SUCCESS_THRESHOLD_ &&
       rotation_error < ROTATION_SUCCESS_THRESHOLD_) {
+    time_to_goal_ = data->time - time_to_goal_;
     std::cout<<"Reached position ("<<position_error<<"m) and rotation ("
-      <<rotation_error<<"rad) tolerances";
+      <<rotation_error<<"rad) tolerances in "<<time_to_goal_<<" seconds";
 
       // Toggle between two goals.
     if (data->mocap_pos[0] == 0.45 && data->mocap_pos[1] == 0.2) {
@@ -181,6 +185,6 @@ void Jack::TransitionLocked(mjModel* model, mjData* data) {
   data->mocap_quat[1] = intermediate_quat[1];
   data->mocap_quat[2] = intermediate_quat[2];
   data->mocap_quat[3] = intermediate_quat[3];
-
 }
+
 }  // namespace mjpc
