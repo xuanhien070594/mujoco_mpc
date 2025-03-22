@@ -13,18 +13,18 @@
     "Sample Gradient"; -->
 
   <custom>
-    <numeric name="agent_planner" data="0" />
-    <numeric name="agent_horizon" data="0.3" />  <!-- 1.0 -->
+    <numeric name="agent_planner" data="2" />
+    <numeric name="agent_horizon" data="0.75" />  <!-- 1.0 -->
     <numeric name="agent_timestep" data="0.01" />
     <numeric name="agent_policy_width" data="0.001" />
-    <numeric name="sampling_trajectories" data="128"/>   <!-- 116 -->
-    <numeric name="sampling_spline_points" data="5"/>  <!-- 6 -->
+    <numeric name="sampling_trajectories" data="1000"/>   <!-- 116 -->
+    <numeric name="sampling_spline_points" data="10"/>  <!-- 6 -->
     <!-- sampling_exploration is "Noise Std" slider in GUI -->
     <numeric name="sampling_exploration" data="0.3 0.0" />
     <numeric name="gradient_spline_points" data="6" />
 
     <!-- cem -->
-    <numeric name="n_elite" data="4" />
+    <numeric name="n_elite" data="10" />
     <numeric name="std_min" data="0.5" />
   </custom>
 
@@ -42,6 +42,7 @@
     </default>
   </default>
 
+  <!-- <option cone="elliptic" impratio="10"/> -->
   <compiler texturedir="./textures"/>
 
   <worldbody>
@@ -81,13 +82,17 @@
     <!-- These <user> tags specify the residuals and how they contribute to costs. -->
     <!-- norm_type=0 means kQuadratic norm:  y = 0.5 * x' * x -->
     <!-- user="norm_type weight weight_lower weight_upper extras_by_norm_type" -->
-    <user name="Cube Target" dim="3" user="0 200 0 200"/>
-    <user name="Cube Orientation" dim="3" user="0 33 0 50"/>
-    <user name="Cube Linear Velocity" dim="3" user="0 0 0 0.05"/>  <!-- 0.025 -->
-    <user name="Cube Angular Velocity" dim="3" user="0 10 0 10"/>  <!-- 0.005 -->
-    <user name="Fingertip 0 Linear Velocity" dim="3" user="0 10.0 0 10.0"/>  <!-- 0.005 -->
-    <user name="Fingertip 1 Linear Velocity" dim="3" user="0 10.0 0 10.0"/>  <!-- 0.005 -->
-    <user name="Fingertip 2 Linear Velocity" dim="3" user="0 10.0 0 10.0"/>  <!-- 0.005 -->
+    <user name="Cube Target" dim="3" user="0 800 0 1000"/>
+    <user name="Cube Orientation" dim="4" user="0 3.0 0 10"/>
+    <user name="Cube Linear Velocity" dim="3" user="0 0 0 0.05"/>
+    <user name="Cube Angular Velocity" dim="3" user="0 0 0 10"/>
+    <user name="Control Input" dim="9" user="0 0.7 0 10.0"/>
+    <user name="Fingertip0 Cube Distance" dim="3" user="0 0.2 0 10"/>
+    <user name="Fingertip1 Cube Distance" dim="3" user="0 0.2 0 10"/>
+    <user name="Fingertip2 Cube Distance" dim="3" user="0 0.2 0 10"/>
+    <user name="Fingertip 0 Linear Velocity" dim="3" user="0 0 0 10.0"/>
+    <user name="Fingertip 1 Linear Velocity" dim="3" user="0 0 0 10.0"/>
+    <user name="Fingertip 2 Linear Velocity" dim="3" user="0 0 0 10.0"/>
 
     <!-- Sensors for fingertips velocities. -->
     <framelinvel name="fingertip0_linear_vel" objtype="body" objname="fingertip0"/>
@@ -96,6 +101,9 @@
 
     <framepos name="cube" objtype="body" objname="cube"/>
     <framepos name="target" objtype="body" objname="target"/>
+    <framepos name="fingertip0" objtype="body" objname="fingertip0"/>
+    <framepos name="fingertip1" objtype="body" objname="fingertip1"/>
+    <framepos name="fingertip2" objtype="body" objname="fingertip2"/>
 
     <!-- Sensors for body orientations. -->
     <framequat name="cube_quat" objtype="body" objname="cube"/>

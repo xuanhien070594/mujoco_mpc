@@ -44,8 +44,6 @@ protected:
 
 private:
   ResidualFn residual_;
-  const double POSITION_SUCCESS_THRESHOLD_ = 0.02;
-  const double ROTATION_SUCCESS_THRESHOLD_ = 0.1;
 };
 } // namespace mjpc
 

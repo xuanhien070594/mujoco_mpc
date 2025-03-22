@@ -1,7 +1,7 @@
 <mujoco model="simplified_trifinger">
   <compiler angle="radian" meshdir="assets" autolimits="true"/>
 
-  <option timestep="0.0005"/>
+  <option timestep="0.001"/>
 
   <worldbody>
     <light name="top" pos="0 0 2" mode="trackcom"/>
@@ -35,14 +35,14 @@
   </worldbody>
 
   <actuator>
-    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-1 1" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="1" gear="1 0 0 0 0 0"/>
-    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-1 1" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 1 0 0 0 0"/>
-    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-1 1" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 0 1 0 0 0"/>
-    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-1 1" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="1" gear="1 0 0 0 0 0"/>
-    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-1 1" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 1 0 0 0 0"/>
-    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-1 1" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 0 1 0 0 0"/>
-    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-1 1" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="1" gear="1 0 0 0 0 0"/>
-    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-1 1" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 1 0 0 0 0"/>
-    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-1 1" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 0 1 0 0 0"/>
+    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="1 0 0 0 0 0"/>
+    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 1 0 0 0 0"/>
+    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 0 1 0 0 0"/>
+    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="1 0 0 0 0 0"/>
+    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 1 0 0 0 0"/>
+    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 0 1 0 0 0"/>
+    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="1 0 0 0 0 0"/>
+    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 1 0 0 0 0"/>
+    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 0 1 0 0 0"/>
   </actuator>
 </mujoco>
