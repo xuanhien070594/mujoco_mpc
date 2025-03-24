@@ -93,6 +93,9 @@ add_custom_target(
           ${menagerie_SOURCE_DIR}/unitree_a1/a1.xml
           ${CMAKE_CURRENT_BINARY_DIR}/quadruped/a1.xml
   COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${menagerie_SOURCE_DIR}/franka_emika_panda/assets
+          ${CMAKE_CURRENT_BINARY_DIR}/plate_balancing/assets
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
           ${menagerie_SOURCE_DIR}/unitree_a1/assets
           ${CMAKE_CURRENT_BINARY_DIR}/quadruped/assets
   COMMAND patch -o ${CMAKE_CURRENT_BINARY_DIR}/quadruped/a1_modified.xml
@@ -161,6 +164,11 @@ add_custom_target(
   COMMAND patch -o ${CMAKE_CURRENT_BINARY_DIR}/bimanual/aloha_cartesian.xml
           ${CMAKE_CURRENT_BINARY_DIR}/bimanual/aloha.xml
           <${CMAKE_CURRENT_SOURCE_DIR}/bimanual/aloha.patch
+##          ${menagerie_SOURCE_DIR}/aloha/integrated_cartesian_actuators.xml
+##          ${CMAKE_CURRENT_BINARY_DIR}/bimanual/integrated_cartesian_actuators.xml
+###   COMMAND patch -o ${CMAKE_CURRENT_BINARY_DIR}/bimanual/aloha_cartesian.xml
+###           ${CMAKE_CURRENT_BINARY_DIR}/bimanual/aloha.xml
+###           <${CMAKE_CURRENT_SOURCE_DIR}/bimanual/aloha.patch
 
   # MJX ALOHA
   COMMAND ${CMAKE_COMMAND} -E copy

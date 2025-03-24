@@ -17,6 +17,8 @@
 #include <string>
 #include <vector>
 
+#include <absl/flags/parse.h>
+
 #include "mjpc/app.h"
 #include "mjpc/tasks/tasks.h"
 #include <absl/flags/flag.h>
@@ -25,6 +27,9 @@
 
 ABSL_FLAG(std::string, task, "Simplified Trifinger",
           "Which model to load on startup.");
+////#include "mjpc/task.h"
+////#include "mjpc/tasks/tasks.h"
+////#include "mjpc/utilities.h"
 
 // machinery for replacing command line error by a macOS dialog box
 // when running under Rosetta
