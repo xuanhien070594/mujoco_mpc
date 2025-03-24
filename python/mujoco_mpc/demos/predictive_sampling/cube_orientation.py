@@ -19,6 +19,7 @@ import numpy as np
 import pathlib
 
 import predictive_sampling
+
 # %%
 # path to hand task
 
@@ -35,42 +36,41 @@ renderer = mujoco.Renderer(model)
 # %%
 # reward
 
+
 def reward(model: mujoco.MjModel, data: mujoco.MjData) -> float:
-  # cube position - palm position (L22 norm)
-  pos_error = (
-      data.sensor("cube_position").data - data.sensor("palm_position").data
-  )
-  p = 0.02
-  q = 2.0
-  c = np.dot(pos_error, pos_error)
-  a = c ** (0.5 * q) + p**q
-  s = a ** (1 / q)
-  r0 = -(s - p)
+    # cube position - palm position (L22 norm)
+    pos_error = data.sensor("cube_position").data - data.sensor("palm_position").data
+    p = 0.02
+    q = 2.0
+    c = np.dot(pos_error, pos_error)
+    a = c ** (0.5 * q) + p**q
+    s = a ** (1 / q)
+    r0 = -(s - p)
 
-  # cube orientation - goal orientation
-  goal_orientation = data.sensor("cube_goal_orientation").data
-  cube_orientation = data.sensor("cube_orientation").data
-  subquat = np.zeros(3)
-  mujoco.mju_subQuat(subquat, goal_orientation, cube_orientation)
-  r1 = -0.5 * np.dot(subquat, subquat)
+    # cube orientation - goal orientation
+    goal_orientation = data.sensor("cube_goal_orientation").data
+    cube_orientation = data.sensor("cube_orientation").data
+    subquat = np.zeros(3)
+    mujoco.mju_subQuat(subquat, goal_orientation, cube_orientation)
+    r1 = -0.5 * np.dot(subquat, subquat)
 
-  # cube linear velocity
-  linvel = data.sensor("cube_linear_velocity").data
-  r2 = -0.5 * np.dot(linvel, linvel)
+    # cube linear velocity
+    linvel = data.sensor("cube_linear_velocity").data
+    r2 = -0.5 * np.dot(linvel, linvel)
 
-  # actuator
-  effort = data.actuator_force
-  r3 = -0.5 * np.dot(effort, effort)
+    # actuator
+    effort = data.actuator_force
+    r3 = -0.5 * np.dot(effort, effort)
 
-  # grasp
-  graspdiff = data.qpos[7:] - model.key_qpos[0][7:]
-  r4 = -0.5 * np.dot(graspdiff, graspdiff)
+    # grasp
+    graspdiff = data.qpos[7:] - model.key_qpos[0][7:]
+    r4 = -0.5 * np.dot(graspdiff, graspdiff)
 
-  # joint velocity
-  jntvel = data.qvel[6:]
-  r5 = -0.5 * np.dot(jntvel, jntvel)
+    # joint velocity
+    jntvel = data.qvel[6:]
+    r5 = -0.5 * np.dot(jntvel, jntvel)
 
-  return 20.0 * r0 + 5.0 * r1 + 10.0 * r2 + 0.1 * r3 + 2.5 * r4 + 1.0e-4 * r5
+    return 20.0 * r0 + 5.0 * r1 + 10.0 * r2 + 0.1 * r3 + 2.5 * r4 + 1.0e-4 * r5
 
 
 # %%
@@ -110,43 +110,43 @@ frames = []
 FPS = 1.0 / model.opt.timestep
 
 # verbose
-VERBOSE = False
+VERBOSE = True
 
 for _ in range(steps):
-  ## predictive sampling
+    ## predictive sampling
 
-  # improve policy
-  planner.improve_policy(
-      data.qpos, data.qvel, data.act, data.time, data.mocap_pos, data.mocap_quat
-  )
+    # improve policy
+    planner.improve_policy(
+        data.qpos, data.qvel, data.act, data.time, data.mocap_pos, data.mocap_quat
+    )
 
-  # get action from policy
-  data.ctrl = planner.action_from_policy(data.time)
-  # data.ctrl = np.random.normal(scale=0.1, size=model.nu)
+    # get action from policy
+    data.ctrl = planner.action_from_policy(data.time)
+    # data.ctrl = np.random.normal(scale=0.1, size=model.nu)
 
-  # reward
-  rewards.append(reward(model, data))
+    # reward
+    rewards.append(reward(model, data))
 
-  if VERBOSE:
-    print("time  : ", data.time)
-    print(" qpos  : ", data.qpos)
-    print(" qvel  : ", data.qvel)
-    print(" act   : ", data.act)
-    print(" action: ", data.ctrl)
-    print(" reward: ", rewards[-1])
+    if VERBOSE:
+        print("time  : ", data.time)
+        print(" qpos  : ", data.qpos)
+        print(" qvel  : ", data.qvel)
+        print(" act   : ", data.act)
+        print(" action: ", data.ctrl)
+        print(" reward: ", rewards[-1])
 
-  # step
-  mujoco.mj_step(model, data)
+    # step
+    mujoco.mj_step(model, data)
 
-  # history
-  qpos.append(data.qpos)
-  qvel.append(data.qvel)
-  act.append(data.act)
-  ctrl.append(ctrl)
+    # history
+    qpos.append(data.qpos)
+    qvel.append(data.qvel)
+    act.append(data.act)
+    ctrl.append(ctrl)
 
-  # render and save frames
-  renderer.update_scene(data)
-  pixels = renderer.render()
-  frames.append(pixels)
+    # render and save frames
+    renderer.update_scene(data)
+    pixels = renderer.render()
+    frames.append(pixels)
 # %%
 media.show_video(frames, fps=FPS)

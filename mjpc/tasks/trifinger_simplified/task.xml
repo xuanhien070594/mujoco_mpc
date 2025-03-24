@@ -17,7 +17,7 @@
     <numeric name="agent_horizon" data="0.75" />  <!-- 1.0 -->
     <numeric name="agent_timestep" data="0.01" />
     <numeric name="agent_policy_width" data="0.001" />
-    <numeric name="sampling_trajectories" data="1000"/>   <!-- 116 -->
+    <numeric name="sampling_trajectories" data="128"/>   <!-- 116 -->
     <numeric name="sampling_spline_points" data="10"/>  <!-- 6 -->
     <!-- sampling_exploration is "Noise Std" slider in GUI -->
     <numeric name="sampling_exploration" data="0.3 0.0" />
