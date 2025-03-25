@@ -29,10 +29,10 @@
   </custom>
 
   <!-- Set camera angle. -->
-  <statistic extent="1.0" center="0.1 0.05 -0.1"/>
+  <statistic extent="1.0" center="0. 0.0 -0.1"/>
   <visual>
     <quality shadowsize="8192"/>
-    <global azimuth="200" elevation="-25" />
+    <global azimuth="200" elevation="-90" />
   </visual>
 
   <default>

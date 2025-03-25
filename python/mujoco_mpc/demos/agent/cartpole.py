@@ -16,6 +16,7 @@
 import matplotlib.pyplot as plt
 import mediapy as media
 import mujoco
+
 # set current directory: mujoco_mpc/python/mujoco_mpc
 from mujoco_mpc import agent as agent_lib
 import numpy as np
@@ -78,46 +79,46 @@ FPS = 1.0 / model.opt.timestep
 
 # simulate
 for t in range(T - 1):
-  if t % 100 == 0:
-    print("t = ", t)
+    if t % 100 == 0:
+        print("t = ", t)
 
-  # set planner state
-  agent.set_state(
-      time=data.time,
-      qpos=data.qpos,
-      qvel=data.qvel,
-      act=data.act,
-      mocap_pos=data.mocap_pos,
-      mocap_quat=data.mocap_quat,
-      userdata=data.userdata,
-  )
+    # set planner state
+    agent.set_state(
+        time=data.time,
+        qpos=data.qpos,
+        qvel=data.qvel,
+        act=data.act,
+        mocap_pos=data.mocap_pos,
+        mocap_quat=data.mocap_quat,
+        userdata=data.userdata,
+    )
 
-  # run planner for num_steps
-  num_steps = 10
-  for _ in range(num_steps):
-    agent.planner_step()
+    # run planner for num_steps
+    num_steps = 10
+    for _ in range(num_steps):
+        agent.planner_step()
 
-  # set ctrl from agent policy
-  data.ctrl = agent.get_action()
-  ctrl[:, t] = data.ctrl
+    # set ctrl from agent policy
+    data.ctrl = agent.get_action()
+    ctrl[:, t] = data.ctrl
 
-  # get costs
-  cost_total[t] = agent.get_total_cost()
-  for i, c in enumerate(agent.get_cost_term_values().items()):
-    cost_terms[i, t] = c[1]
+    # get costs
+    cost_total[t] = agent.get_total_cost()
+    for i, c in enumerate(agent.get_cost_term_values().items()):
+        cost_terms[i, t] = c[1]
 
-  # step
-  mujoco.mj_step(model, data)
+    # step
+    mujoco.mj_step(model, data)
 
-  # cache
-  qpos[:, t + 1] = data.qpos
-  qvel[:, t + 1] = data.qvel
-  time[t + 1] = data.time
+    # cache
+    qpos[:, t + 1] = data.qpos
+    qvel[:, t + 1] = data.qvel
+    time[t + 1] = data.time
 
-  # render and save frames
-  renderer.update_scene(data)
-  pixels = renderer.render()
-  frames.append(pixels)
+    # render and save frames
+    renderer.update_scene(data)
+    pixels = renderer.render()
+    frames.append(pixels)
 
 # reset
 agent.reset()
@@ -162,7 +163,7 @@ plt.ylabel("Control")
 fig = plt.figure()
 
 for i, c in enumerate(agent.get_cost_term_values().items()):
-  plt.plot(time[:-1], cost_terms[i, :], label=c[0])
+    plt.plot(time[:-1], cost_terms[i, :], label=c[0])
 
 plt.plot(time[:-1], cost_total, label="Total (weighted)", color="black")
 
