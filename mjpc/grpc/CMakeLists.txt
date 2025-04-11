@@ -40,7 +40,7 @@ findorfetch(
   GIT_REPO
   https://github.com/grpc/grpc
   GIT_TAG
-  v1.60.1
+  v1.71.0
   TARGETS
   gRPC
 )
