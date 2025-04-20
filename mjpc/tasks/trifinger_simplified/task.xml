@@ -69,6 +69,10 @@
       <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0.1 0 0" rgba="1 .2 .2 .4"/>
       <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0 0.1 0" rgba=".2 1 .2 .4"/>
       <geom class="no_collision" type="cylinder" size="0.005" fromto="0 0 0 0 0 0.1" rgba=".2 .2 1 .4"/>
+      <site name="corner_1" pos="0.0325 0.0325 0.0" rgba="0 0 0 0"/>
+      <site name="corner_2" pos="-0.0325 0.0325 0.0" rgba="0 0 0 0"/>
+      <site name="corner_3" pos="-0.0325 -0.0325 0.0" rgba="0 0 0 0"/>
+      <site name="corner_4" pos="0.0325 -0.0325 0.0" rgba="0 0 0 0"/>
     </body>
   </worldbody>
 
@@ -90,9 +94,12 @@
     <user name="Fingertip0 Cube Distance" dim="3" user="0 0.2 0 10"/>
     <user name="Fingertip1 Cube Distance" dim="3" user="0 0.2 0 10"/>
     <user name="Fingertip2 Cube Distance" dim="3" user="0 0.2 0 10"/>
-    <user name="Fingertip 0 Linear Velocity" dim="3" user="0 0 0 10.0"/>
-    <user name="Fingertip 1 Linear Velocity" dim="3" user="0 0 0 10.0"/>
-    <user name="Fingertip 2 Linear Velocity" dim="3" user="0 0 0 10.0"/>
+    <user name="Avoiding corner fingertip 0" dim="1" user="-1 0 0 1e-5"/>
+    <user name="Avoiding corner fingertip 1" dim="1" user="-1 0 0 1e-5"/>
+    <user name="Avoiding corner fingertip 2" dim="1" user="-1 0 0 1e-5"/>
+    <user name="Fingertip 0 Linear Velocity" dim="3" user="0 0.0 0 10"/>
+    <user name="Fingertip 1 Linear Velocity" dim="3" user="0 0.0 0 10"/>
+    <user name="Fingertip 2 Linear Velocity" dim="3" user="0 0.0 0 10"/>
 
     <!-- Sensors for fingertips velocities. -->
     <framelinvel name="fingertip0_linear_vel" objtype="body" objname="fingertip0"/>
@@ -118,6 +125,12 @@
     <framepos name="trace1" objtype="site" objname="fingertip1"/>
     <framepos name="trace2" objtype="site" objname="fingertip2"/>
     <framepos name="trace3" objtype="body" objname="cube"/>
+
+    <!-- Sensors for cube corner positions. -->
+    <framepos name="corner_1" objtype="site" objname="corner_1"/>
+    <framepos name="corner_2" objtype="site" objname="corner_2"/>
+    <framepos name="corner_3" objtype="site" objname="corner_3"/>
+    <framepos name="corner_4" objtype="site" objname="corner_4"/>
   </sensor>
 
   <include file="simplified_trifinger.xml"/>
