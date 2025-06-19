@@ -78,7 +78,7 @@ For a detailed dive of the graphical user interface, see the
 [MJPC GUI](docs/GUI.md) documentation.
 
 ## Installation
-MJPC is tested with [Ubuntu 20.04](https://releases.ubuntu.com/focal/) and [macOS-12](https://www.apple.com/by/macos/monterey/). In principle, other versions and Windows operating system should work with MJPC, but these are not tested.
+MJPC is tested with [Ubuntu 22.04](https://releases.ubuntu.com/jammy/) and [macOS-15](https://www.apple.com/macos/macos-sequoia/). In principle, other versions and Windows operating system should work with MJPC, but these are not tested.
 
 ### Prerequisites
 Operating system specific dependencies:
@@ -91,9 +91,9 @@ Install `ninja` and `zlib`:
 brew install ninja zlib
 ```
 
-#### Ubuntu 20.04
+#### Ubuntu 22.04
 ```sh
-sudo apt-get update && sudo apt-get install cmake libgl1-mesa-dev libxinerama-dev libxcursor-dev libxrandr-dev libxi-dev ninja-build zlib1g-dev clang-12
+sudo apt-get update && sudo apt-get install cmake libgl1-mesa-dev libxinerama-dev libxcursor-dev libxrandr-dev libxi-dev ninja-build zlib1g-dev clang-14
 ```
 
 ### Clone MuJoCo MPC
@@ -115,14 +115,14 @@ cd build
 
 3. Configure:
 
-#### macOS-12
+#### macOS-15
 ```sh
 cmake .. -DCMAKE_BUILD_TYPE:STRING=Release -G Ninja -DMJPC_BUILD_GRPC_SERVICE:BOOL=ON
 ```
 
-#### Ubuntu 20.04
+#### Ubuntu 22.04
 ```sh
-cmake .. -DCMAKE_BUILD_TYPE:STRING=Release -G Ninja -DCMAKE_C_COMPILER:STRING=clang-12 -DCMAKE_CXX_COMPILER:STRING=clang++-12 -DMJPC_BUILD_GRPC_SERVICE:BOOL=ON
+cmake .. -DCMAKE_BUILD_TYPE:STRING=Release -G Ninja -DCMAKE_C_COMPILER:STRING=clang-14 -DCMAKE_CXX_COMPILER:STRING=clang++-14 -DMJPC_BUILD_GRPC_SERVICE:BOOL=ON
 ```
 **Note: gRPC is a large dependency and can take 10-20 minutes to initially download.**
 
@@ -145,14 +145,14 @@ to simplify the build process.
 
 1. Open the cloned directory `mujoco_mpc`.
 2. Configure the project with CMake (a pop-up should appear in VSCode)
-3. Set compiler to `clang-12`.
+3. Set compiler to `clang-14`.
 4. Build and run the `mjpc` target in "release" mode (VSCode defaults to
    "debug"). This will open and run the graphical user interface.
 
 ### Build Issues
 If you encounter build issues, please see the
 [Github Actions configuration](https://github.com/google-deepmind/mujoco_mpc/blob/main/.github/workflows/build.yml).
-This provides the exact setup we use for building MJPC for testing with Ubuntu 20.04 and macOS-12.
+This provides the exact setup we use for building MJPC for testing with Ubuntu 20.04 and macOS-12 (might be outdated)
 
 # Python API
 We provide a simple Python API for MJPC. This API is still experimental and expects some more experience from its users. For example, the correct usage requires that the model (defined in Python) and the MJPC task (i.e., the residual and transition functions defined in C++) are compatible with each other. Currently, the Python API does not provide any particular error handling for verifying this compatibility and may be difficult to debug without more in-depth knowledge about MuJoCo and MJPC.
