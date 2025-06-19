@@ -14,8 +14,8 @@
 
   <custom>
     <numeric name="agent_planner" data="2" />
-    <numeric name="agent_horizon" data="0.75" />  <!-- 1.0 -->
-    <numeric name="agent_timestep" data="0.01" />
+    <numeric name="agent_horizon" data="4" />  <!-- 1.0 -->
+    <numeric name="agent_timestep" data="0.02" />
     <numeric name="agent_policy_width" data="0.001" />
     <numeric name="sampling_trajectories" data="128"/>   <!-- 116 -->
     <numeric name="sampling_spline_points" data="10"/>  <!-- 6 -->
@@ -79,7 +79,7 @@
   <keyframe>
     <!-- TODO:  It's unclear what this is used for. -->
     <!-- Guessed order:  EE xyz, jack wxyz, jack xyz -->
-    <key name="home" qpos=" 0 0.0 0.0325 1 0 0 0 0 0.06 0.0325 0 -0.06 0.0325 0.06 0 0.0325 "/>
+    <key name="home" qpos=" 0 0.0 0.0325 1 0 0 0 -0.01 0.06 0.0325 -0.01 -0.06 0.0325 0.06 0 0.0325 "/>
   </keyframe>
 
   <sensor>
@@ -87,19 +87,19 @@
     <!-- norm_type=0 means kQuadratic norm:  y = 0.5 * x' * x -->
     <!-- user="norm_type weight weight_lower weight_upper extras_by_norm_type" -->
     <user name="Cube Target" dim="3" user="0 800 0 1000"/>
-    <user name="Cube Orientation" dim="4" user="0 3.0 0 10"/>
-    <user name="Cube Linear Velocity" dim="3" user="0 0 0 0.05"/>
-    <user name="Cube Angular Velocity" dim="3" user="0 0 0 10"/>
-    <user name="Control Input" dim="9" user="0 0.7 0 10.0"/>
+    <user name="Cube Orientation" dim="4" user="0 5.0 0 10"/>
+    <user name="Cube Linear Velocity" dim="3" user="0 1.5 0 0.05"/>
+    <user name="Cube Angular Velocity" dim="3" user="0 1.5 0 10"/>
+    <user name="Control Input" dim="9" user="0 4.0 0 10.0"/>
     <user name="Fingertip0 Cube Distance" dim="3" user="0 0.2 0 10"/>
     <user name="Fingertip1 Cube Distance" dim="3" user="0 0.2 0 10"/>
     <user name="Fingertip2 Cube Distance" dim="3" user="0 0.2 0 10"/>
     <user name="Avoiding corner fingertip 0" dim="1" user="-1 0 0 1e-5"/>
     <user name="Avoiding corner fingertip 1" dim="1" user="-1 0 0 1e-5"/>
     <user name="Avoiding corner fingertip 2" dim="1" user="-1 0 0 1e-5"/>
-    <user name="Fingertip 0 Linear Velocity" dim="3" user="0 0.0 0 10"/>
-    <user name="Fingertip 1 Linear Velocity" dim="3" user="0 0.0 0 10"/>
-    <user name="Fingertip 2 Linear Velocity" dim="3" user="0 0.0 0 10"/>
+    <user name="Fingertip 0 Linear Velocity" dim="3" user="0 3.0 0 10"/>
+    <user name="Fingertip 1 Linear Velocity" dim="3" user="0 3.0 0 10"/>
+    <user name="Fingertip 2 Linear Velocity" dim="3" user="0 3.0 0 10"/>
 
     <!-- Sensors for fingertips velocities. -->
     <framelinvel name="fingertip0_linear_vel" objtype="body" objname="fingertip0"/>

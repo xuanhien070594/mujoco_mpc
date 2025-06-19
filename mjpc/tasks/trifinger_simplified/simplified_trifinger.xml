@@ -6,21 +6,21 @@
   <worldbody>
     <light name="top" pos="0 0 2" mode="trackcom"/>
     <body name="fingertip0">
-      <geom type="sphere" size="0.0095" mass="0.01" priority="1" condim="3" friction="0.5 .01 .003" rgba="1.0 0 0 1"/>
+      <geom type="sphere" size="0.0095" mass="0.1" priority="1" condim="3" friction="0.5 .01 .003" rgba="1.0 0 0 1"/>
       <joint name="fingetip0_x" type="slide" range="-0.06 0.02" axis="1 0 0" limited="true"/>
       <joint name="fingetip0_y" type="slide" range="0.01 0.09" axis="0 1 0" limited="true"/>
       <joint name="fingetip0_z" type="slide" range="0.028 0.033" axis="0 0 1" limited="true"/>
       <site name="fingertip0" pos="0 0 0.0" group="3"/>
     </body>
     <body name="fingertip1">
-      <geom type="sphere" size="0.0095" mass="0.01" priority="1" condim="3" friction="0.5 .01 .003" rgba="0.0 1.0 0 1"/>
+      <geom type="sphere" size="0.0095" mass="0.1" priority="1" condim="3" friction="0.5 .01 .003" rgba="0.0 1.0 0 1"/>
       <joint name="fingertip1_x" type="slide" range="-0.06 0.02" axis="1 0 0" limited="true"/>
       <joint name="fingertip1_y" type="slide" range="-0.09 0.01" axis="0 1 0" limited="true"/>
       <joint name="fingertip1_z" type="slide" range="0.028 0.033" axis="0 0 1" limited="true"/>
       <site name="fingertip1" pos="0 0 0.0" group="3"/>
     </body>
     <body name="fingertip2">
-      <geom type="sphere" size="0.0095" mass="0.01" priority="1" condim="3" friction="0.5 .01 .003" rgba="0 0 1.0 1"/>
+      <geom type="sphere" size="0.0095" mass="0.1" priority="1" condim="3" friction="0.5 .01 .003" rgba="0 0 1.0 1"/>
       <joint name="fingertip2_x" type="slide" range="0.01 0.09" axis="1 0 0" limited="true"/>
       <joint name="fingertip2_y" type="slide" range="-0.04 0.04" axis="0 1 0" limited="true"/>
       <joint name="fingertip2_z" type="slide" range="0.028 0.033" axis="0 0 1" limited="true"/>
@@ -29,14 +29,14 @@
   </worldbody>
 
   <actuator>
-    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-2 2" forcelimited="true" ctrllimited="true" gainprm="1" gear="1 0 0 0 0 0"/>
-    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-2 2" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 1 0 0 0 0"/>
-    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-2 2" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 0 1 0 0 0"/>
-    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-2 2" forcelimited="true" ctrllimited="true" gainprm="1" gear="1 0 0 0 0 0"/>
-    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-2 2" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 1 0 0 0 0"/>
-    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-2 2" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 0 1 0 0 0"/>
-    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-2 2" forcelimited="true" ctrllimited="true" gainprm="1" gear="1 0 0 0 0 0"/>
-    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-2 2" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 1 0 0 0 0"/>
-    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-2 2" forcelimited="true" ctrllimited="true" gainprm="1" gear="0 0 1 0 0 0"/>
+    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="1 0 0 0 0 0"/>
+    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 1 0 0 0 0"/>
+    <general site="fingertip0" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 0 1 0 0 0"/>
+    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="1 0 0 0 0 0"/>
+    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 1 0 0 0 0"/>
+    <general site="fingertip1" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 0 1 0 0 0"/>
+    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="1 0 0 0 0 0"/>
+    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 1 0 0 0 0"/>
+    <general site="fingertip2" refsite="world" gaintype="fixed" forcerange="-2 2" ctrlrange="-1 1" forcelimited="true" ctrllimited="true" gainprm="2" gear="0 0 1 0 0 0"/>
   </actuator>
 </mujoco>
