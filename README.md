@@ -93,7 +93,15 @@ brew install ninja zlib
 
 #### Ubuntu 22.04
 ```sh
-sudo apt-get update && sudo apt-get install cmake libgl1-mesa-dev libxinerama-dev libxcursor-dev libxrandr-dev libxi-dev ninja-build zlib1g-dev clang-14
+sudo apt-get update && sudo apt-get install cmake libgl1-mesa-dev libxinerama-dev libxcursor-dev libxrandr-dev libxi-dev ninja-build zlib1g-dev
+```
+We also need to install `clang-17` using the following commands as it can't be directly installed via `apt-get`)
+
+```sh
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+sudo ./llvm.sh 17
+rm llvm.sh
 ```
 
 ### Clone MuJoCo MPC
@@ -122,7 +130,7 @@ cmake .. -DCMAKE_BUILD_TYPE:STRING=Release -G Ninja -DMJPC_BUILD_GRPC_SERVICE:BO
 
 #### Ubuntu 22.04
 ```sh
-cmake .. -DCMAKE_BUILD_TYPE:STRING=Release -G Ninja -DCMAKE_C_COMPILER:STRING=clang-14 -DCMAKE_CXX_COMPILER:STRING=clang++-14 -DMJPC_BUILD_GRPC_SERVICE:BOOL=ON
+cmake .. -DCMAKE_BUILD_TYPE:STRING=Release -G Ninja -DCMAKE_C_COMPILER:STRING=clang-17 -DCMAKE_CXX_COMPILER:STRING=clang++-17 -DMJPC_BUILD_GRPC_SERVICE:BOOL=ON
 ```
 **Note: gRPC is a large dependency and can take 10-20 minutes to initially download.**
 
@@ -145,7 +153,7 @@ to simplify the build process.
 
 1. Open the cloned directory `mujoco_mpc`.
 2. Configure the project with CMake (a pop-up should appear in VSCode)
-3. Set compiler to `clang-14`.
+3. Set compiler to `clang-17`.
 4. Build and run the `mjpc` target in "release" mode (VSCode defaults to
    "debug"). This will open and run the graphical user interface.
 
